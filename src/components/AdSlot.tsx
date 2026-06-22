@@ -1,6 +1,4 @@
-import React from 'react';
 import { useActiveAd } from '@/hooks/useData';
-import { Skeleton } from '@/components/Skeleton';
 
 export function AdSlot({ zone, slotIndex = 0 }: { zone: string, slotIndex?: number }) {
   const { ad, isLoading } = useActiveAd(zone, slotIndex);

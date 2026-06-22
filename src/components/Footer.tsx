@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconBrandInstagram, IconBrandX, IconBrandYoutube, IconBrandTiktok, IconBrandThreads, IconMail } from '@tabler/icons-react';
 import { Logo } from './Navbar';
 

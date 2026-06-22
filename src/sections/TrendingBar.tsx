@@ -3,7 +3,7 @@ import { TrendingUp } from 'lucide-react';
 import { useArticles } from '@/hooks/useData';
 
 export default function TrendingBar() {
-  const { articles, isLoading } = useArticles();
+  const { articles } = useArticles();
   const trendingArticles = articles.filter(a => a.trending || a.breaking).slice(0, 5);
   const scrollRef = useRef<HTMLDivElement>(null);
 
