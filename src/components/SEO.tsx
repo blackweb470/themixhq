@@ -5,11 +5,13 @@ interface SEOProps {
   description?: string;
   image?: string;
   url?: string;
-  type?: 'website' | 'article';
+  type?: 'website' | 'article' | 'profile';
+  keywords?: string;
   articleData?: {
     publishedTime: string;
     modifiedTime?: string;
     author: string;
+    section?: string;
     tags?: string[];
   };
 }
@@ -20,6 +22,7 @@ export function SEO({
   image = 'https://themixhq.com/logo.png', // Fallback to logo or a default OG image
   url = 'https://themixhq.com',
   type = 'website',
+  keywords = 'entertainment, afrobeats, news, gossip, culture, nollywood, music, africa, celebrities',
   articleData,
 }: SEOProps) {
   // Ensure the title always has branding unless it's perfectly crafted
@@ -29,6 +32,10 @@ export function SEO({
   const structuredData = type === 'article' && articleData ? {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": url
+    },
     "headline": title,
     "image": [image],
     "datePublished": articleData.publishedTime,
@@ -36,6 +43,7 @@ export function SEO({
     "author": [{
       "@type": "Person",
       "name": articleData.author,
+      "url": "https://themixhq.com"
     }],
     "publisher": {
       "@type": "Organization",
@@ -50,6 +58,7 @@ export function SEO({
     "@type": "WebSite",
     "name": "Themixhq",
     "url": "https://themixhq.com",
+    "description": description,
     "potentialAction": {
       "@type": "SearchAction",
       "target": "https://themixhq.com/?q={search_term_string}",
@@ -62,6 +71,10 @@ export function SEO({
       {/* Standard Meta Tags */}
       <title>{formattedTitle}</title>
       <meta name="description" content={description} />
+      <meta name="keywords" content={keywords} />
+      <meta name="author" content={articleData?.author || "Themixhq"} />
+      <meta name="publisher" content="Themixhq" />
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
       {/* Canonical URL */}
       <link rel="canonical" href={url} />
@@ -73,6 +86,7 @@ export function SEO({
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
       <meta property="og:site_name" content="Themixhq" />
+      <meta property="og:locale" content="en_US" />
 
       {/* Article Specific Open Graph */}
       {type === 'article' && articleData && (
@@ -80,6 +94,7 @@ export function SEO({
           <meta property="article:published_time" content={articleData.publishedTime} />
           {articleData.modifiedTime && <meta property="article:modified_time" content={articleData.modifiedTime} />}
           <meta property="article:author" content={articleData.author} />
+          {articleData.section && <meta property="article:section" content={articleData.section} />}
           {articleData.tags?.map((tag) => (
             <meta property="article:tag" content={tag} key={tag} />
           ))}

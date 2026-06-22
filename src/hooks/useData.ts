@@ -183,7 +183,7 @@ export function useComments(articleId: string | undefined | null) {
 
 export function usePromotions() {
   const fetchPromos = async () => {
-    const { data, error } = await supabase.from('promotions').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('promotions').select('*').neq('status', 'deleted').order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return data;
   };

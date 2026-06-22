@@ -139,10 +139,12 @@ export default function Article() {
         image={article.image}
         url={`https://themixhq.com/article/${article.id}`}
         type="article"
+        keywords={`${article.categoryLabel}, entertainment, afrobeats, ${article.title.split(' ').filter(w => w.length > 3).slice(0, 5).join(', ')}`}
         articleData={{
           publishedTime: article.date,
           author: article.author,
-          tags: [article.categoryLabel]
+          section: article.categoryLabel,
+          tags: [article.categoryLabel, 'Themixhq']
         }}
       />
       <Navbar />

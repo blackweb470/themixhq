@@ -199,17 +199,31 @@ export default function Admin() {
         published_at: customPublishDate ? new Date(customPublishDate).toISOString() : new Date().toISOString()
       };
 
-      const { error } = editingArticleId 
-        ? await supabase.from('articles').update(payload).eq('id', editingArticleId)
-        : await supabase.from('articles').insert(payload);
+      const { data, error } = editingArticleId 
+        ? await supabase.from('articles').update(payload).eq('id', editingArticleId).select().single()
+        : await supabase.from('articles').insert(payload).select().single();
 
       if (error) {
         showToast('Failed to publish: ' + error.message, 'error');
         setSaveStatus('unsaved');
       } else {
         showToast('Your article is live on Themixhq.', 'success');
-        if (notifySubscribers) {
-          setTimeout(() => showToast(`Newsletter sent to ${subscribers.length} subscribers about this post!`, 'success'), 500);
+        if (notifySubscribers && subscribers.length > 0) {
+          const { error: fnError } = await supabase.functions.invoke('send-newsletter', {
+            body: {
+              articleTitle: payload.title,
+              articleExcerpt: payload.excerpt,
+              articleUrl: `https://themixhq.com/article/${data?.id}`,
+              subscribers: subscribers
+            }
+          });
+          if (fnError) {
+             showToast('Failed to send newsletter.', 'error');
+          } else {
+             showToast(`Newsletter sent to ${subscribers.length} subscribers!`, 'success');
+          }
+        } else if (notifySubscribers) {
+          showToast('No subscribers to notify.', 'warning');
         }
         setModalOpen(false);
         setSaveStatus('saved');
@@ -1022,7 +1036,7 @@ export default function Admin() {
                         <button 
                           onClick={async () => {
                             if (window.confirm('Are you sure you want to delete this promotion campaign? This action cannot be undone.')) {
-                              const { error } = await supabase.from('promotions').delete().eq('id', promo.id);
+                              const { error } = await supabase.from('promotions').update({ status: 'deleted' }).eq('id', promo.id);
                               if (error) showToast('Failed to delete', 'error');
                               else { showToast('Campaign deleted', 'success'); mutatePromos(); }
                             }
