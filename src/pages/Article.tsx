@@ -11,13 +11,6 @@ import { supabase } from '@/lib/supabase';
 import { AdSlot } from '@/components/AdSlot';
 import { SEO } from '@/components/SEO';
 
-const getInitials = (name?: string) => {
-  if (!name) return 'A';
-  const parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length === 0) return 'A';
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-};
 
 export default function Article() {
   const { id } = useParams();
@@ -177,8 +170,8 @@ export default function Article() {
             {/* Byline */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-b border-gray-200 py-4 mb-8 space-y-4 sm:space-y-0">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-gray-100 border-2 border-red-600 flex items-center justify-center text-red-600 font-black text-lg">
-                  {getInitials(article.author)}
+                <div className="w-12 h-12 flex items-center justify-center">
+                  <img src="/logo.png" alt="theMixhq" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900 uppercase tracking-wide">By <span className="text-red-600">{article.author}</span></p>

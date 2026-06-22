@@ -11,8 +11,8 @@ const mapArticle = (row: any): Article => ({
     excerpt: row.excerpt,
     category: row.category || 'news',
     categoryLabel: row.category_label || 'News',
-    image: row.cover_image_url || '/images/default.jpg',
-    author: row.author_name || 'Admin',
+    image: row.cover_image_url || '/images/music-culture.jpg',
+    author: 'theMixhq',
     date: row.published_at ? new Date(row.published_at).toISOString().split('T')[0] : '',
     readTime: `${Math.ceil((row.word_count || 300) / 200)} min read`,
     featured: row.is_featured,
@@ -29,11 +29,17 @@ const mapArticle = (row: any): Article => ({
 });
 
 // Fetcher for Articles
-const fetchArticles = async () => {
-  const { data, error } = await supabase
+const fetchArticles = async ([_key, includeDrafts]: [string, boolean]) => {
+  let query = supabase
     .from('articles')
     .select('*')
     .order('published_at', { ascending: false });
+
+  if (!includeDrafts) {
+    query = query.eq('status', 'published');
+  }
+
+  const { data, error } = await query;
 
   if (error) throw new Error(error.message);
   
@@ -41,8 +47,8 @@ const fetchArticles = async () => {
   return data.map(mapArticle);
 };
 
-export function useArticles() {
-  const { data, error, isLoading, mutate } = useSWR('articles', fetchArticles, {
+export function useArticles(includeDrafts: boolean = false) {
+  const { data, error, isLoading, mutate } = useSWR(['articles', includeDrafts], fetchArticles, {
     revalidateOnFocus: true,
     revalidateIfStale: true,
     dedupingInterval: 2000, // Only deduplicate within 2 seconds

@@ -67,7 +67,7 @@ export default function Admin() {
   const [seoDesc, setSeoDesc] = useState('');
   
   // App State
-  const { articles, isLoading, mutate: mutateArticles } = useArticles();
+  const { articles, isLoading, mutate: mutateArticles } = useArticles(true);
   const { promotions, mutate: mutatePromos } = usePromotions();
   const { staff, mutate: mutateStaff } = useStaff();
   const { settings } = useSettings();
@@ -191,7 +191,7 @@ export default function Admin() {
         seo_description: seoDesc,
         category: categoryLabel.toLowerCase(),
         category_label: categoryLabel,
-        author_name: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || 'Admin',
+        author_name: 'theMixhq',
         word_count: wordCount,
         status: 'published',
         published_at: new Date().toISOString()
@@ -231,7 +231,7 @@ export default function Admin() {
       seo_description: seoDesc,
       category: categoryLabel.toLowerCase(),
       category_label: categoryLabel,
-      author_name: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || 'Admin',
+      author_name: 'theMixhq',
       word_count: wordCount,
       status: 'draft',
       published_at: null
