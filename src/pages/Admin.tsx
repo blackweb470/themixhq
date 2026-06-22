@@ -65,6 +65,7 @@ export default function Admin() {
   const [seoDrawerOpen, setSeoDrawerOpen] = useState(false);
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDesc, setSeoDesc] = useState('');
+  const [customPublishDate, setCustomPublishDate] = useState('');
   
   // App State
   const { articles, isLoading, mutate: mutateArticles } = useArticles(true);
@@ -168,6 +169,7 @@ export default function Admin() {
     setCategoryLabel(article.categoryLabel || 'News');
     setSeoTitle(article.seo_title || '');
     setSeoDesc(article.seo_description || '');
+    setCustomPublishDate('');
     setEditingArticleId(article.id);
     if (editor) {
       editor.commands.setContent(article.content || '');
@@ -194,7 +196,7 @@ export default function Admin() {
         author_name: 'theMixhq',
         word_count: wordCount,
         status: 'published',
-        published_at: new Date().toISOString()
+        published_at: customPublishDate ? new Date(customPublishDate).toISOString() : new Date().toISOString()
       };
 
       const { error } = editingArticleId 
@@ -234,7 +236,7 @@ export default function Admin() {
       author_name: 'theMixhq',
       word_count: wordCount,
       status: 'draft',
-      published_at: null
+      published_at: customPublishDate ? new Date(customPublishDate).toISOString() : null
     };
 
     const { error } = editingArticleId
@@ -778,6 +780,27 @@ export default function Admin() {
                             </button>
                           )}
 
+                          {canSee(['super', 'admin']) && (
+                            <button 
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`Are you sure you want to delete this ${activePanel === 'drafts' ? 'draft' : 'post'}? This action cannot be undone.`)) {
+                                  const { error } = await supabase.from('articles').delete().eq('id', article.id);
+                                  if (!error) {
+                                    showToast(`${activePanel === 'drafts' ? 'Draft' : 'Post'} deleted.`, 'success');
+                                    mutateArticles();
+                                  } else {
+                                    showToast('Failed to delete: ' + error.message, 'error');
+                                  }
+                                }
+                              }}
+                              className="text-gray-400 hover:text-red-600 transition-colors mr-4"
+                              title={`Delete ${activePanel === 'drafts' ? 'Draft' : 'Post'}`}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+
                           <span className="px-3 py-1 bg-green-100 text-green-700 font-bold text-[10px] uppercase tracking-wider rounded-full">
                             {article.status || 'Published'}
                           </span>
@@ -998,9 +1021,11 @@ export default function Admin() {
                         <button onClick={() => { setEditingPromo(promo); setActivePanel('add-promo'); }} className="text-red-600 font-bold text-[13px] uppercase hover:underline">Edit</button>
                         <button 
                           onClick={async () => {
-                            const { error } = await supabase.from('promotions').delete().eq('id', promo.id);
-                            if (error) showToast('Failed to delete', 'error');
-                            else { showToast('Campaign deleted', 'success'); mutatePromos(); }
+                            if (window.confirm('Are you sure you want to delete this promotion campaign? This action cannot be undone.')) {
+                              const { error } = await supabase.from('promotions').delete().eq('id', promo.id);
+                              if (error) showToast('Failed to delete', 'error');
+                              else { showToast('Campaign deleted', 'success'); mutatePromos(); }
+                            }
                           }} 
                           className="text-gray-400 hover:text-red-600 transition-colors"
                           title="Delete Campaign"
@@ -1250,6 +1275,17 @@ export default function Admin() {
                   <option value="Sports">Sports</option>
                   <option value="Videos">Videos</option>
                 </select>
+              </div>
+
+              <div className="mb-8">
+                <label className="block text-[12px] font-bold uppercase text-gray-600 mb-2">Publish Date (Optional)</label>
+                <input 
+                  type="datetime-local" 
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-[14px] outline-none focus:border-red-600 font-bold"
+                  value={customPublishDate}
+                  onChange={(e) => { setCustomPublishDate(e.target.value); markUnsaved(); }}
+                />
+                <p className="text-[11px] text-gray-500 mt-2 font-bold uppercase tracking-wider">Leave blank to use current date</p>
               </div>
 
               <div className="mb-8">
