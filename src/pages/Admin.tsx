@@ -3,8 +3,7 @@ import {
   Edit, FileText, Files, Users, Megaphone, BarChart, Settings, UserCircle, 
   Check, AlertCircle, X, Image as ImageIcon,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Link as LinkIcon, PanelRight, ImagePlus, Trash2,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo, Redo, LayoutTemplate, Palette, Highlighter, Video as VideoIcon, Globe,
-  Eye, EyeOff, Mail
+  AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo, Redo, LayoutTemplate, Palette, Highlighter, Video as VideoIcon, Globe, Mail
 } from 'lucide-react';
 
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -30,26 +29,50 @@ import { AdminRowSkeleton } from '../components/Skeleton';
 
 export default function Admin() {
   const [session, setSession] = useState<any>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+
+
+  const checkRole = async (email: string) => {
+    try {
+      const { data } = await supabase.from('staff').select('role').eq('email', email).limit(1);
+      if (data && data.length > 0 && data[0].role) {
+        const rawRole = data[0].role.toLowerCase();
+        if (rawRole.includes('super')) {
+          setRole('super');
+        } else {
+          setRole(rawRole);
+        }
+      } else {
+        setRole('none');
+      }
+    } catch (err) {
+      setRole('none');
+    }
+    setIsAuthLoading(false);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setIsAuthLoading(false);
+      if (session?.user?.email) {
+        checkRole(session.user.email);
+      } else {
+        setIsAuthLoading(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user?.email) {
+        checkRole(session.user.email);
+      } else {
+        setRole(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const [role] = useState('super');
   const [activePanel, setActivePanel] = useState('write');
   
   // Editor State
@@ -355,56 +378,17 @@ export default function Admin() {
     setInlineValue('');
   };
 
-  const canSee = (allowed: string[]) => allowed.includes(role);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
-    if (error) setLoginError(error.message);
-  };
+  const canSee = (allowed: string[]) => allowed.includes(role || '');
 
   if (isAuthLoading) return <div className="h-screen w-screen flex items-center justify-center bg-gray-50 font-sans text-xl font-black">Loading...</div>;
 
-  if (!session) {
+  if (!session || role === 'none') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-black mb-2 tracking-tight">Creator Studio</h1>
-            <p className="text-gray-500 font-medium">Sign in to manage your content</p>
-          </div>
-          {loginError && <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold border border-red-100">{loginError}</div>}
-          <form onSubmit={handleLogin} className="flex flex-col gap-5">
-            <div>
-              <label className="block text-[12px] font-bold uppercase text-gray-600 mb-2 tracking-wider">Email Address</label>
-              <input type="email" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-[14px] text-black outline-none focus:border-red-600 focus:bg-white transition-colors" />
-            </div>
-            <div>
-              <label className="block text-[12px] font-bold uppercase text-gray-600 mb-2 tracking-wider">Password</label>
-              <div className="relative">
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  required 
-                  value={loginPassword} 
-                  onChange={e => setLoginPassword(e.target.value)} 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 pr-12 text-[14px] text-black outline-none focus:border-red-600 focus:bg-white transition-colors" 
-                />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
-            <button type="submit" className="w-full bg-red-600 text-white font-bold py-4 rounded-xl mt-2 hover:bg-red-700 active:scale-[0.98] transition-all uppercase tracking-wider text-[14px] shadow-md shadow-red-600/20">Sign In</button>
-          </form>
-        </div>
+      <div className="min-h-screen bg-white flex flex-col justify-center items-center text-center px-4 font-sans text-black">
+        <h1 className="text-9xl font-black mb-4 tracking-tighter text-gray-900">404</h1>
+        <h2 className="text-3xl font-bold mb-6">Page Not Found</h2>
+        <p className="text-gray-500 mb-8 max-w-md text-lg">The page you are looking for doesn't exist or has been moved.</p>
+        <a href="/" className="bg-red-600 text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-red-700 transition-colors shadow-lg">Return to Home</a>
       </div>
     );
   }
@@ -825,24 +809,6 @@ export default function Admin() {
                 )}
               </div>
             </div>
-          ) : activePanel === 'analytics' ? (
-             <div className="max-w-[1000px] w-full animate-fade-in mx-auto mt-8">
-              <h2 className="text-[32px] font-black tracking-tight mb-6">Analytics Overview</h2>
-              <div className="grid grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Articles</div>
-                  <div className="text-4xl font-black">{articles.length}</div>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Views</div>
-                  <div className="text-4xl font-black">1.2M</div>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Avg Read Time</div>
-                  <div className="text-4xl font-black">3m 42s</div>
-                </div>
-              </div>
-            </div>
           ) : activePanel === 'subscribers' ? (
             <div className="max-w-[1000px] w-full animate-fade-in mx-auto mt-8">
               <div className="flex items-center justify-between mb-6">
@@ -969,15 +935,25 @@ export default function Admin() {
               <div className="grid grid-cols-4 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Articles</div>
-                  <div className="text-4xl font-black text-black">{articles.length > 0 ? articles.length : 13}</div>
+                  <div className="text-4xl font-black text-black">{articles.length}</div>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Views</div>
-                  <div className="text-4xl font-black text-black">1.2M</div>
+                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Engagement</div>
+                  <div className="text-4xl font-black text-black">
+                    {articles.reduce((acc, a) => acc + (a.likes || 0) + (a.dislikes || 0), 0).toLocaleString()}
+                  </div>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Avg Read Time</div>
-                  <div className="text-4xl font-black text-black">3m 42s</div>
+                  <div className="text-4xl font-black text-black">
+                    {(() => {
+                      if (!articles.length) return '0m 0s';
+                      const avgWords = articles.reduce((acc, a) => acc + (a.word_count || 0), 0) / articles.length;
+                      const mins = Math.floor(avgWords / 200);
+                      const secs = Math.floor((avgWords % 200) / (200 / 60));
+                      return `${mins}m ${secs}s`;
+                    })()}
+                  </div>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Subscribers</div>

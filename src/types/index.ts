@@ -19,6 +19,7 @@ export interface Article {
   cover_image_url?: string;
   seo_title?: string;
   seo_description?: string;
+  word_count?: number;
 }
 
 export interface InstagramPost {
