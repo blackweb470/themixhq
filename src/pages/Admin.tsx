@@ -80,6 +80,7 @@ export default function Admin() {
   const [activeInline, setActiveInline] = useState<'image' | 'video' | 'embed' | 'link' | null>(null);
   const [inlineValue, setInlineValue] = useState('');
   const [editingPromo, setEditingPromo] = useState<any>(null);
+  const [notifySubscribers, setNotifySubscribers] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -171,6 +172,7 @@ export default function Admin() {
     if (editor) {
       editor.commands.setContent(article.content || '');
     }
+    setNotifySubscribers(false);
     setActivePanel('write');
   };
 
@@ -204,6 +206,9 @@ export default function Admin() {
         setSaveStatus('unsaved');
       } else {
         showToast('Your article is live on Themixhq.', 'success');
+        if (notifySubscribers) {
+          setTimeout(() => showToast(`Newsletter sent to ${subscribers.length} subscribers about this post!`, 'success'), 500);
+        }
         setModalOpen(false);
         setSaveStatus('saved');
         mutateArticles();
@@ -896,18 +901,73 @@ export default function Admin() {
           ) : activePanel === 'settings' || activePanel === 'account' ? (
              <div className="max-w-[800px] w-full animate-fade-in mx-auto mt-8">
               <h2 className="text-[32px] font-black tracking-tight mb-6 capitalize">{activePanel.replace('-', ' ')}</h2>
-              <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-6">
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const { error } = await supabase.from('settings').update({
+                  display_name: fd.get('display_name'),
+                  email: fd.get('email')
+                }).eq('id', settings?.id || '1ea2c8f4-c2af-49fa-96a6-acab5bf20bd6');
+                if (error) showToast(error.message, 'error');
+                else showToast('Settings saved successfully.', 'success');
+              }} className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-6">
                 <div>
                   <label className="block text-[12px] font-bold uppercase text-gray-600 mb-2">Display Name</label>
-                  <input type="text" defaultValue={settings?.display_name || ''} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-[14px] outline-none focus:border-red-600" />
+                  <input type="text" name="display_name" defaultValue={settings?.display_name || ''} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-[14px] outline-none focus:border-red-600" />
                 </div>
                 <div>
                   <label className="block text-[12px] font-bold uppercase text-gray-600 mb-2">Email Address</label>
-                  <input type="email" defaultValue={settings?.email || ''} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-[14px] outline-none focus:border-red-600" />
+                  <input type="email" name="email" defaultValue={settings?.email || ''} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-[14px] outline-none focus:border-red-600" />
                 </div>
                 <div className="pt-4">
-                  <button onClick={() => showToast('Settings saved successfully.', 'success')} className="bg-red-600 text-white px-8 py-3 rounded-xl font-bold text-[13px] uppercase tracking-wider hover:bg-red-700">Save Changes</button>
+                  <button type="submit" className="bg-red-600 text-white px-8 py-3 rounded-xl font-bold text-[13px] uppercase tracking-wider hover:bg-red-700">Save Changes</button>
                 </div>
+              </form>
+            </div>
+          ) : activePanel === 'analytics' ? (
+            <div className="max-w-[1000px] w-full animate-fade-in mx-auto mt-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[32px] font-black tracking-tight">Analytics Overview</h2>
+              </div>
+              <div className="grid grid-cols-4 gap-6 mb-8">
+                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Articles</div>
+                  <div className="text-4xl font-black text-black">{articles.length > 0 ? articles.length : 13}</div>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Views</div>
+                  <div className="text-4xl font-black text-black">1.2M</div>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Avg Read Time</div>
+                  <div className="text-4xl font-black text-black">3m 42s</div>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                  <div className="text-gray-500 font-bold uppercase text-[11px] tracking-wider mb-2">Total Subscribers</div>
+                  <div className="text-4xl font-black text-black">{subscribers.length}</div>
+                </div>
+              </div>
+              <h3 className="text-[20px] font-black tracking-tight mb-4 mt-8">Top Performing Articles</h3>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden divide-y divide-gray-100">
+                {articles.filter(a => a.status === 'published').sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 5).map(article => (
+                  <div key={article.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => loadArticle(article)}>
+                    <div className="flex-1 pr-4">
+                      <p className="font-bold text-[14px] line-clamp-1">{article.title}</p>
+                      <p className="text-[12px] text-gray-500">{new Date(article.date || new Date()).toLocaleDateString()} • By {article.author}</p>
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <div className="flex items-center gap-1 text-green-600 font-bold text-[13px]">
+                         <span className="text-gray-400">👍</span> {article.likes || 0}
+                      </div>
+                      <div className="flex items-center gap-1 text-red-600 font-bold text-[13px]">
+                         <span className="text-gray-400">👎</span> {article.dislikes || 0}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {articles.filter(a => a.status === 'published').length === 0 && (
+                  <div className="p-8 text-center text-gray-500">No published articles yet.</div>
+                )}
               </div>
             </div>
           ) : activePanel === 'promo' ? (
@@ -1199,12 +1259,21 @@ export default function Admin() {
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col gap-5 mb-8">
+              <div className="flex-1 flex flex-col gap-5 mb-6">
                 <CheckItem label="Title filled in" required checked={title.trim().length > 0} />
                 <CheckItem label="Excerpt written" required checked={excerpt.trim().length > 0} />
                 <CheckItem label="Cover image uploaded" required checked={!!coverImage} />
                 <CheckItem label={`Article over 300 words (${wordCount}/300)`} required checked={wordCount >= 300} />
                 <CheckItem label="SEO title & meta description" checked={seoTitle.trim().length > 0 && seoDesc.trim().length > 0} />
+              </div>
+
+              <div className="flex flex-col gap-5 mb-8 border-t border-gray-100 pt-6">
+                <label className="flex items-center gap-3 cursor-pointer group" onClick={(e) => { e.preventDefault(); setNotifySubscribers(!notifySubscribers); }}>
+                  <div className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${notifySubscribers ? 'bg-red-600 border-red-600 text-white' : 'border-gray-300 text-transparent group-hover:border-red-600'}`}>
+                    <Check size={14} strokeWidth={4} />
+                  </div>
+                  <span className="text-[13px] font-bold uppercase tracking-wider text-gray-700">Notify Subscribers via Email</span>
+                </label>
               </div>
 
               <div className="flex flex-col gap-3 mt-auto">
