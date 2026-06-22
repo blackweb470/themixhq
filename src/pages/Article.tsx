@@ -9,6 +9,7 @@ import { useArticles, useComments } from '@/hooks/useData';
 import { Skeleton } from '@/components/Skeleton';
 import { supabase } from '@/lib/supabase';
 import { AdSlot } from '@/components/AdSlot';
+import { SEO } from '@/components/SEO';
 
 const getInitials = (name?: string) => {
   if (!name) return 'A';
@@ -138,7 +139,19 @@ export default function Article() {
   `;
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans">
+    <div className="min-h-screen bg-white text-black font-sans selection:bg-red-600 selection:text-white">
+      <SEO 
+        title={article.seo_title || article.title}
+        description={article.seo_description || article.excerpt}
+        image={article.image}
+        url={`https://themixhq.com/article/${article.id}`}
+        type="article"
+        articleData={{
+          publishedTime: article.date,
+          author: article.author,
+          tags: [article.categoryLabel]
+        }}
+      />
       <Navbar />
 
       <AdSlot zone="Header Banner" />

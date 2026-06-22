@@ -5,6 +5,7 @@ import { Footer } from '@/components/Footer';
 import { Newsletter } from '@/components/Newsletter';
 import { usePublishedArticlesInfinite } from '@/hooks/useData';
 import { ArticleCardSkeleton } from '@/components/Skeleton';
+import { SEO } from '@/components/SEO';
 
 export default function Category() {
   const { slug } = useParams();
@@ -16,9 +17,15 @@ export default function Category() {
 
   // Slug comes from the Navbar links e.g. /category/music
   const categoryTitle = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Category';
+  const categoryDescription = `Read the latest news, updates, and trending stories in ${categoryTitle} from Themixhq.`;
 
   return (
     <div className="min-h-screen bg-white text-black font-sans">
+      <SEO 
+        title={`${categoryTitle} News & Updates`} 
+        description={categoryDescription}
+        url={`https://themixhq.com/category/${slug}`}
+      />
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-12">

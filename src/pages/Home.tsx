@@ -8,6 +8,7 @@ import { Newsletter } from '@/components/Newsletter';
 import { usePublishedArticlesInfinite } from '@/hooks/useData';
 import { ArticleCardSkeleton } from '@/components/Skeleton';
 import { AdSlot } from '@/components/AdSlot';
+import { SEO } from '@/components/SEO';
 
 const SectionHeader = ({ title, icon }: { title: string, icon?: React.ReactNode }) => (
   <div className="flex items-center justify-between border-b-2 border-black pb-2 mb-4">
@@ -47,6 +48,7 @@ export default function Home() {
   if (isLoading || !articles.length) {
     return (
       <div className="min-h-screen bg-white text-black font-sans">
+        <SEO />
         <Navbar />
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
@@ -77,6 +79,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-black font-sans">
+      <SEO />
       <Navbar />
 
       <AdSlot zone="Header Banner" />
