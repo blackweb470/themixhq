@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Themixhq Creator Studio</title>
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+    <style>
+        :root {
+            --bg-body: #0a0a0a;
+            --bg-sidebar: #111111;
+            --bg-panel: #161616;
+            --border-color: rgba(255,255,255,0.08);
+            --accent: #bc13fe;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-primary: #f5f5f5;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --font-main: system-ui, -apple-system, sans-serif;
+            --radius-input: 6px;
+            --radius-card: 10px;
+            --radius-pill: 20px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-main); background: var(--bg-body); color: var(--text-primary); display: flex; height: 100vh; overflow: hidden; font-size: 14px; }
+        
+        a { color: inherit; text-decoration: none; }
+        button { cursor: pointer; border: none; font-family: inherit; }
+        input, select, textarea { font-family: inherit; background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: var(--radius-input); padding: 8px 12px; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+        
+        /* Layout */
+        #sidebar { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s; }
+        #main-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; }
+        #topbar { height: 60px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--bg-body); }
+        #content { flex: 1; overflow-y: auto; padding: 32px; position: relative; }
+
+        /* Sidebar Elements */
+        .brand { font-size: 20px; font-weight: 800; font-style: italic; padding: 24px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); }
+        .nav-list { padding: 16px 0; list-style: none; flex: 1; overflow-y: auto; }
+        .nav-item { padding: 12px 24px; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s; }
+        .nav-item:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+        .nav-item.active { color: var(--text-primary); border-left-color: var(--accent); background: rgba(255,255,255,0.05); }
+        .nav-item i { font-size: 18px; }
+
+        .user-profile { padding: 16px; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+        .user-info { flex: 1; overflow: hidden; }
+        .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .user-role-badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: var(--radius-pill); font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+        .role-super { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .role-editor { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .role-author { background: rgba(136, 136, 136, 0.2); color: var(--text-secondary); }
+
+        /* Topbar */
+        .role-switcher { display: flex; align-items: center; gap: 8px; }
+        .topbar-actions { display: flex; align-items: center; gap: 16px; }
+        .save-indicator { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+        .save-indicator.unsaved { color: var(--warning); }
+        .btn { padding: 8px 16px; border-radius: var(--radius-input); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); }
+
+        /* Panels */
+        .panel { display: none; max-width: 1000px; margin: 0 auto; animation: fadeIn 0.3s; }
+        .panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .panel-title { font-size: 24px; font-weight: 600; margin-bottom: 24px; }
+
+        /* Write Page */
+        #write-panel { max-width: 720px; }
+        .editor-container { position: relative; padding-bottom: 100px; max-width: 720px; margin: 0 auto; }
+        [contenteditable]:empty:before { content: attr(data-placeholder); color: var(--text-muted); pointer-events: none; display: block; }
+        .write-title { font-size: 36px; font-weight: 600; outline: none; margin-bottom: 16px; line-height: 1.2; }
+        .write-excerpt { font-size: 18px; color: var(--text-secondary); outline: none; margin-bottom: 32px; font-weight: 400; line-height: 1.5; }
+        .write-body { outline: none; font-size: 18px; line-height: 1.8; color: var(--text-primary); min-height: 300px; }
+        .write-body p { margin-bottom: 1em; }
+        .write-body h2 { font-size: 24px; font-weight: 600; margin: 1.5em 0 0.5em; }
+        .write-body h3 { font-size: 20px; font-weight: 600; margin: 1.2em 0 0.5em; }
+        .write-body blockquote { border-left: 3px solid var(--accent); padding-left: 16px; font-style: italic; color: var(--text-secondary); margin: 1.5em 0; }
+        .write-body hr { border: none; border-top: 1px solid var(--border-color); margin: 2em 0; }
+        
+        .status-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; border-top: 1px solid var(--border-color); background: var(--bg-body); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 12px; color: var(--text-secondary); z-index: 10; }
+
+        /* Slash Command Menu */
+        .slash-menu { position: absolute; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: var(--radius-card); width: 260px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none; z-index: 100; max-height: 300px; overflow-y: auto; }
+        .slash-menu.active { display: block; }
+        .slash-item { padding: 10px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; }
+        .slash-item:hover { background: rgba(255,255,255,0.05); }
+        .slash-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .slash-text { flex: 1; }
+        .slash-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .slash-desc { font-size: 11px; color: var(--text-muted); }
+
+        /* Floating Toolbar */
+        .floating-toolbar { position: absolute; background: #222; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-pill); display: none; padding: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 100; gap: 2px; transform: translateX(-50%) translateY(-120%); }
+        .floating-toolbar.active { display: flex; }
+        .toolbar-btn { background: transparent; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .toolbar-btn:hover { background: rgba(255,255,255,0.1); }
+
+        /* Modal / Preview Gate */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .preview-gate { background: var(--bg-panel); width: 900px; max-width: 95%; border-radius: 16px; border: 1px solid var(--border-color); display: flex; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .preview-left { flex: 1; background: #000; padding: 40px; border-right: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; }
+        .preview-card { background: var(--bg-body); border-radius: 12px; overflow: hidden; width: 100%; max-width: 350px; border: 1px solid var(--border-color); }
+        .preview-img { width: 100%; height: 200px; background: #222; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+        .preview-content { padding: 20px; }
+        .preview-tags { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        .preview-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+        .preview-excerpt { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; }
+        .preview-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        
+        .preview-right { width: 400px; padding: 40px; display: flex; flex-direction: column; }
+        .preview-header { margin-bottom: 32px; }
+        .preview-header h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .progress-bar-container { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 12px; }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+        
+        .checklist { flex: 1; display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+        .check-item { display: flex; align-items: flex-start; gap: 12px; transition: transform 0.2s; }
+        .check-item.shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .checkbox { width: 20px; height: 20px; border-radius: 4px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: transparent; transition: all 0.2s; flex-shrink: 0; margin-top: 2px; }
+        .check-item.checked .checkbox { background: var(--success); border-color: var(--success); color: white; }
+        .check-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+        .check-item.checked .check-label { color: var(--text-primary); }
+        .check-item.required .check-label::after { content: '*'; color: var(--danger); margin-left: 4px; }
+        
+        .preview-actions { display: flex; flex-direction: column; gap: 12px; }
+        .preview-actions .btn { width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
+        .btn-close-modal { position: absolute; top: 20px; right: 20px; background: transparent; color: var(--text-secondary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .btn-close-modal:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        /* Cards & Grids */
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .metric-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 20px; }
+        .metric-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+        .metric-value { font-size: 32px; font-weight: 700; color: var(--text-primary); }
+
+        .data-table { width: 100%; border-collapse: collapse; background: var(--bg-panel); border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--border-color); }
+        .data-table th, .data-table td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        .data-table th { color: var(--text-secondary); font-weight: 600; background: rgba(255,255,255,0.02); }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .status-amber { background: var(--warning); }
+        .status-blue { background: #3b82f6; }
+        .status-green { background: var(--success); }
+
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-control { width: 100%; }
+        .form-row { display: flex; gap: 16px; }
+        .form-row > * { flex: 1; }
+        .dropzone { border: 2px dashed var(--border-color); border-radius: var(--radius-card); padding: 32px; text-align: center; color: var(--text-muted); cursor: pointer; transition: border-color 0.2s; }
+        .dropzone:hover { border-color: var(--accent); color: var(--text-secondary); }
+        .collapsible-form { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 24px; margin-bottom: 32px; display: none; }
+        .collapsible-form.active { display: block; }
+        
+        /* Bar Chart Placeholder */
+        .chart-container { height: 250px; border-bottom: 1px solid var(--border-color); border-left: 1px solid var(--border-color); display: flex; align-items: flex-end; gap: 10%; padding-top: 20px; margin-bottom: 32px; }
+        .bar { flex: 1; background: var(--accent); border-radius: 4px 4px 0 0; min-width: 20px; transition: height 0.5s; position: relative; }
+        .bar:hover { opacity: 0.8; }
+        .bar::after { content: attr(data-value); position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--text-secondary); }
+
+        /* Toasts */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .toast { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 16px 24px; display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 500; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .toast.show { transform: translateX(0); }
+        .toast-success i { color: var(--success); }
+        .toast-error i { color: var(--danger); }
+        .toast-warning i { color: var(--warning); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <div>
+            <div class="brand">theMixhq</div>
+            <ul class="nav-list" id="nav-menu">
+                <li class="nav-item active" data-panel="write"><i class="ti ti-edit"></i> Write new post</li>
+                <li class="nav-item" data-panel="drafts"><i class="ti ti-file-text"></i> My drafts</li>
+                <li class="nav-item" data-panel="team-drafts" data-role="editor,super"><i class="ti ti-files"></i> Team drafts</li>
+                <li class="nav-item" data-panel="staff" data-role="editor,super"><i class="ti ti-users"></i> Staff directory</li>
+                <li class="nav-item" data-panel="promo" data-role="super"><i class="ti ti-speakerphone"></i> Promotional hub</li>
+                <li class="nav-item" data-panel="analytics" data-role="super"><i class="ti ti-chart-bar"></i> Analytics overview</li>
+                <li class="nav-item" data-panel="settings" data-role="super"><i class="ti ti-settings"></i> Site settings</li>
+                <li class="nav-item" data-panel="account"><i class="ti ti-user-circle"></i> My account</li>
+            </ul>
+        </div>
+        <div class="user-profile">
+            <div class="avatar" id="user-avatar">JD</div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">John Doe</div>
+                <div class="user-role-badge role-super" id="user-role-badge">Super Admin</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div id="main-wrapper">
+        <header id="topbar">
+            <div class="role-switcher">
+                <span style="font-size: 12px; color: var(--text-secondary);">View as:</span>
+                <select id="role-select" class="form-control" style="width: 140px; padding: 4px 8px; font-size: 12px;">
+                    <option value="super">Super Admin</option>
+                    <option value="editor">Editor</option>
+                    <option value="author">Author</option>
+                </select>
+            </div>
+            <div class="topbar-actions">
+                <div class="save-indicator" id="save-indicator"><i class="ti ti-check"></i> Saved just now</div>
+                <button class="btn btn-primary" id="btn-publish-gate">Publish / Save</button>
+            </div>
+        </header>
+
+        <div id="content">
+            
+            <!-- Panel: Write -->
+            <div class="panel active" id="panel-write">
+                <div class="editor-container">
+                    <h1 class="write-title" contenteditable="true" data-placeholder="Article title..." id="write-title"></h1>
+                    <div class="write-excerpt" contenteditable="true" data-placeholder="Write a short excerpt..." id="write-excerpt"></div>
+                    <div class="write-body" contenteditable="true" data-placeholder="Start writing or type '/' for commands..." id="write-body"><p><br></p></div>
+                </div>
+                
+                <div class="status-bar">
+                    <div id="word-count">0 words</div>
+                    <div id="read-time">0 min read</div>
+                </div>
+
+                <!-- Slash Menu -->
+                <div class="slash-menu" id="slash-menu">
+                    <div class="slash-item" data-cmd="p"><div class="slash-icon"><i class="ti ti-typography"></i></div><div class="slash-text"><div class="slash-title">Paragraph</div><div class="slash-desc">Just start writing with plain text.</div></div></div>
+                    <div class="slash-item" data-cmd="h2"><div class="slash-icon"><i class="ti ti-heading"></i></div><div class="slash-text"><div class="slash-title">Heading 2</div><div class="slash-desc">Medium section heading.</div></div></div>
+                    <div class="slash-item" data-cmd="h3"><div class="slash-icon"><i class="ti ti-heading"></i></div><div class="slash-text"><div class="slash-title">Heading 3</div><div class="slash-desc">Small section heading.</div></div></div>
+                    <div class="slash-item" data-cmd="quote"><div class="slash-icon"><i class="ti ti-quote"></i></div><div class="slash-text"><div class="slash-title">Pull quote</div><div class="slash-desc">Capture reader attention.</div></div></div>
+                    <div class="slash-item" data-cmd="image"><div class="slash-icon"><i class="ti ti-photo"></i></div><div class="slash-text"><div class="slash-title">Image/media</div><div class="slash-desc">Upload or embed with a link.</div></div></div>
+                    <div class="slash-item" data-cmd="video"><div class="slash-icon"><i class="ti ti-video"></i></div><div class="slash-text"><div class="slash-title">Video embed</div><div class="slash-desc">Embed from YouTube or Vimeo.</div></div></div>
+                    <div class="slash-item" data-cmd="social"><div class="slash-icon"><i class="ti ti-brand-instagram"></i></div><div class="slash-text"><div class="slash-title">Social embed</div><div class="slash-desc">Instagram, TikTok, Twitter.</div></div></div>
+                    <div class="slash-item" data-cmd="divider"><div class="slash-icon"><i class="ti ti-minus"></i></div><div class="slash-text"><div class="slash-title">Divider</div><div class="slash-desc">Visually divide blocks.</div></div></div>
+                    <div class="slash-item" data-cmd="code"><div class="slash-icon"><i class="ti ti-code"></i></div><div class="slash-text"><div class="slash-title">Code block</div><div class="slash-desc">Add code snippets.</div></div></div>
+                </div>
+
+                <!-- Floating Toolbar -->
+                <div class="floating-toolbar" id="floating-toolbar">
+                    <button class="toolbar-btn" data-fmt="bold" title="Bold"><i class="ti ti-bold"></i></button>
+                    <button class="toolbar-btn" data-fmt="italic" title="Italic"><i class="ti ti-italic"></i></button>
+                    <button class="toolbar-btn" data-fmt="underline" title="Underline"><i class="ti ti-underline"></i></button>
+                    <button class="toolbar-btn" data-fmt="strikeThrough" title="Strikethrough"><i class="ti ti-strikethrough"></i></button>
+                    <button class="toolbar-btn" data-fmt="createLink" title="Link"><i class="ti ti-link"></i></button>
+                    <button class="toolbar-btn" data-fmt="hiliteColor" data-val="#bc13fe" title="Highlight"><i class="ti ti-highlight"></i></button>
+                    <button class="toolbar-btn" data-fmt="formatBlock" data-val="h2" title="H2">H2</button>
+                    <button class="toolbar-btn" data-fmt="formatBlock" data-val="h3" title="H3">H3</button>
+                    <button class="toolbar-btn" data-fmt="formatBlock" data-val="blockquote" title="Quote"><i class="ti ti-quote"></i></button>
+                </div>
+            </div>
+
+            <!-- Panel: Drafts -->
+            <div class="panel" id="panel-drafts">
+                <h2 class="panel-title">My Drafts</h2>
+                <div class="metric-grid">
+                    <div class="metric-card"><div class="metric-label">Drafts in progress</div><div class="metric-value">4</div></div>
+                    <div class="metric-card"><div class="metric-label">Pending review</div><div class="metric-value">2</div></div>
+                    <div class="metric-card"><div class="metric-label">Published this month</div><div class="metric-value">12</div></div>
+                </div>
+                <table class="data-table">
+                    <thead><tr><th>Status</th><th>Title</th><th>Category</th><th>Date</th><th>Action</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="status-dot status-amber"></span>Draft</td><td>Burna Boy Shatters Records...</td><td>Afrobeats</td><td>Today</td><td><button class="btn btn-outline" style="padding: 4px 8px;">Edit</button></td></tr>
+                        <tr><td><span class="status-dot status-blue"></span>In Review</td><td>Lagos Fashion Week 2026</td><td>Lifestyle</td><td>Yesterday</td><td><button class="btn btn-outline" style="padding: 4px 8px;">View</button></td></tr>
+                        <tr><td><span class="status-dot status-green"></span>Published</td><td>Wizkid and Tems Leak</td><td>Music</td><td>Jun 18</td><td><button class="btn btn-outline" style="padding: 4px 8px;">Stats</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Panel: Team Drafts -->
+            <div class="panel" id="panel-team-drafts">
+                <h2 class="panel-title">All Team Drafts</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Review and publish articles submitted by the team.</p>
+                <table class="data-table">
+                    <thead><tr><th>Status</th><th>Author</th><th>Title</th><th>Category</th><th>Action</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="status-dot status-blue"></span>Reviewing</td><td>Amara Johnson</td><td>Tiwa Savage Opens Up</td><td>Gossip</td><td><button class="btn btn-primary" style="padding: 4px 8px;">Review</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Panel: Staff -->
+            <div class="panel" id="panel-staff">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 class="panel-title" style="margin: 0;">Staff Directory</h2>
+                    <button class="btn btn-primary" id="btn-add-staff"><i class="ti ti-plus"></i> Add Staff</button>
+                </div>
+                
+                <div class="collapsible-form" id="staff-form">
+                    <h3 style="margin-bottom: 16px;">New Staff Member</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">First Name *</label><input type="text" class="form-control" id="staff-fn"></div>
+                        <div class="form-group"><label class="form-label">Last Name *</label><input type="text" class="form-control" id="staff-ln"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Corporate Email (@themixhq.com) *</label><input type="email" class="form-control" id="staff-email"></div>
+                        <div class="form-group"><label class="form-label">Role</label><select class="form-control"><option>Author</option><option>Editor</option><option>Super Admin</option></select></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Avatar Upload (Max 2MB)</label>
+                        <div class="dropzone">Drag and drop avatar image here</div>
+                    </div>
+                    <button class="btn btn-primary" id="btn-save-staff">Send Invite</button>
+                </div>
+
+                <table class="data-table">
+                    <thead><tr><th>Staff</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><div style="display: flex; align-items: center; gap: 12px;"><div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: var(--danger);">JD</div>John Doe</div></td>
+                            <td>john@themixhq.com</td>
+                            <td><span class="user-role-badge role-super">Super Admin</span></td>
+                            <td><button class="btn btn-outline" style="padding: 4px 8px;">Manage</button></td>
+                        </tr>
+                        <tr>
+                            <td><div style="display: flex; align-items: center; gap: 12px;"><div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: #3b82f6;">CA</div>Chioma Adeleke</div></td>
+                            <td>chioma@themixhq.com</td>
+                            <td><span class="user-role-badge role-editor">Editor</span></td>
+                            <td><button class="btn btn-outline" style="padding: 4px 8px;">Manage</button></td>
+                        </tr>
+                        <tr>
+                            <td><div style="display: flex; align-items: center; gap: 12px;"><div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: #888;">AJ</div>Amara Johnson</div></td>
+                            <td>amara@themixhq.com</td>
+                            <td><span class="user-role-badge role-author">Author</span></td>
+                            <td><button class="btn btn-outline" style="padding: 4px 8px;">Manage</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Panel: Promo -->
+            <div class="panel" id="panel-promo">
+                <h2 class="panel-title">Promotional Hub</h2>
+                <div class="metric-grid">
+                    <div class="metric-card"><div class="metric-label">Active Campaigns</div><div class="metric-value">3</div></div>
+                    <div class="metric-card"><div class="metric-label">Total Impressions</div><div class="metric-value">1.2M</div></div>
+                    <div class="metric-card"><div class="metric-label">Avg. Click Rate</div><div class="metric-value">2.4%</div></div>
+                </div>
+                <div class="collapsible-form" style="display: block;">
+                    <h3 style="margin-bottom: 16px;">New Campaign</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Asset Type</label><select class="form-control"><option>Display Banner</option><option>Video Promo</option></select></div>
+                        <div class="form-group"><label class="form-label">Placement Zone</label><select class="form-control"><option>Header Banner</option><option>In-article</option><option>Sticky Footer</option></select></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Start Date</label><input type="datetime-local" class="form-control"></div>
+                        <div class="form-group"><label class="form-label">End Date</label><input type="datetime-local" class="form-control"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Click-through URL</label><input type="url" class="form-control" placeholder="https://..."></div>
+                    <div class="form-group">
+                        <label class="form-label">Creative Asset</label>
+                        <div class="dropzone">Drop image/video here (WebP/PNG/JPG/MP4)</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showToast('Campaign launched', 'success')">Launch Campaign</button>
+                </div>
+            </div>
+
+            <!-- Panel: Analytics -->
+            <div class="panel" id="panel-analytics">
+                <h2 class="panel-title">Analytics Overview</h2>
+                <div class="metric-grid">
+                    <div class="metric-card"><div class="metric-label">Pageviews (Month)</div><div class="metric-value">4.5M</div></div>
+                    <div class="metric-card"><div class="metric-label">Unique Visitors</div><div class="metric-value">850K</div></div>
+                    <div class="metric-card"><div class="metric-label">Avg. Time on Page</div><div class="metric-value">2m 45s</div></div>
+                </div>
+                <div class="chart-container">
+                    <div class="bar" style="height: 40%;" data-value="45k"></div>
+                    <div class="bar" style="height: 60%;" data-value="70k"></div>
+                    <div class="bar" style="height: 50%;" data-value="55k"></div>
+                    <div class="bar" style="height: 80%;" data-value="95k"></div>
+                    <div class="bar" style="height: 100%;" data-value="120k"></div>
+                    <div class="bar" style="height: 70%;" data-value="85k"></div>
+                    <div class="bar" style="height: 90%;" data-value="110k"></div>
+                </div>
+                <table class="data-table">
+                    <thead><tr><th>Rank</th><th>Article Title</th><th>Category</th><th>Views</th><th>Shares</th></tr></thead>
+                    <tbody>
+                        <tr><td>1</td><td>Burna Boy Shatters Records</td><td>Afrobeats</td><td>125,430</td><td>12,045</td></tr>
+                        <tr><td>2</td><td>Inside Davido's Mansion</td><td>Gossip</td><td>98,210</td><td>8,430</td></tr>
+                        <tr><td>3</td><td>Lagos Fashion Week</td><td>Culture</td><td>87,500</td><td>5,200</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Panel: Settings -->
+            <div class="panel" id="panel-settings">
+                <h2 class="panel-title">Site Settings</h2>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Site Name</label><input type="text" class="form-control" value="theMixhq"></div>
+                    <div class="form-group"><label class="form-label">Tagline</label><input type="text" class="form-control" value="Entertainment News & Afrobeats"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Logo Upload</label>
+                        <div class="dropzone" style="padding: 16px;">Drop logo here</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Favicon Upload</label>
+                        <div class="dropzone" style="padding: 16px;">Drop favicon here</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Default SEO Title Format</label><input type="text" class="form-control" value="%title% | theMixhq"></div>
+                    <div class="form-group"><label class="form-label">Default SEO Meta Description</label><input type="text" class="form-control" value="The latest entertainment news from theMixhq."></div>
+                </div>
+                <h3 style="margin: 24px 0 16px;">Social Links</h3>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Instagram</label><input type="url" class="form-control" value="https://instagram.com/themixhq"></div>
+                    <div class="form-group"><label class="form-label">Twitter/X</label><input type="url" class="form-control" value="https://twitter.com/themixhq"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">TikTok</label><input type="url" class="form-control" value="https://tiktok.com/@themixhq"></div>
+                    <div class="form-group"><label class="form-label">WhatsApp Channel</label><input type="url" class="form-control" value="https://whatsapp.com/channel/..."></div>
+                </div>
+                <h3 style="margin: 24px 0 16px;">Monetization Toggles</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px;">
+                    <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" checked> Header banner ads</label>
+                    <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" checked> In-article ads</label>
+                    <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" checked> Sticky footer ad</label>
+                    <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox"> Push notifications</label>
+                </div>
+                <button class="btn btn-primary" onclick="showToast('Settings saved', 'success')">Save Settings</button>
+            </div>
+
+            <!-- Panel: Account -->
+            <div class="panel" id="panel-account">
+                <h2 class="panel-title">My Account</h2>
+                <div style="display: flex; gap: 32px;">
+                    <div style="flex: 1;">
+                        <div class="form-group"><label class="form-label">Avatar Upload (Max 2MB)</label><div class="dropzone" style="padding: 16px;">Drop new avatar here</div></div>
+                        <div class="form-group"><label class="form-label">Display Name</label><input type="text" class="form-control" id="acc-name" value="John Doe"></div>
+                        <div class="form-group"><label class="form-label">Email (Disabled)</label><input type="email" class="form-control" disabled value="john@themixhq.com"></div>
+                        <div class="form-group"><label class="form-label">Author Bio</label><textarea class="form-control" rows="4">Senior Editor at theMixhq.</textarea></div>
+                        <h3 style="margin: 24px 0 16px;">Notification Preferences</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                            <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" checked> Email me when my article is published</label>
+                            <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" checked> Email me when an article needs review</label>
+                        </div>
+                        <button class="btn btn-primary" onclick="showToast('Profile updated', 'success')">Save Profile</button>
+                    </div>
+                    <div style="flex: 1; border-left: 1px solid var(--border-color); padding-left: 32px;">
+                        <h3 style="margin-bottom: 16px;">Security</h3>
+                        <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-control"></div>
+                        <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-control"></div>
+                        <div class="form-group"><label class="form-label">Confirm New Password</label><input type="password" class="form-control"></div>
+                        <div style="height: 4px; background: var(--border-color); border-radius: 2px; margin-bottom: 24px; overflow: hidden;"><div style="width: 60%; height: 100%; background: var(--warning);"></div></div>
+                        <button class="btn btn-outline" onclick="showToast('Password updated', 'success')">Change Password</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Preview Gate Modal -->
+    <div class="modal-overlay" id="preview-gate">
+        <button class="btn-close-modal" id="btn-close-gate"><i class="ti ti-x"></i></button>
+        <div class="preview-gate">
+            <div class="preview-left">
+                <div class="preview-card">
+                    <div class="preview-img"><i class="ti ti-photo" style="font-size: 48px;"></i></div>
+                    <div class="preview-content">
+                        <div class="preview-tags">AFROBEATS</div>
+                        <div class="preview-title" id="prev-title">Article Title...</div>
+                        <div class="preview-excerpt" id="prev-excerpt">Excerpt...</div>
+                        <div class="preview-meta">
+                            <div class="avatar" style="width: 20px; height: 20px; font-size: 8px;" id="prev-av">JD</div>
+                            <span id="prev-author">John Doe</span> • <span id="prev-read">1 min read</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="preview-right">
+                <div class="preview-header">
+                    <h3>Pre-publish Checklist</h3>
+                    <div class="progress-bar-container"><div class="progress-bar" id="checklist-progress"></div></div>
+                </div>
+                <div class="checklist">
+                    <div class="check-item required" id="chk-title"><div class="checkbox"><i class="ti ti-check"></i></div><div class="check-label">Title filled in</div></div>
+                    <div class="check-item required" id="chk-excerpt"><div class="checkbox"><i class="ti ti-check"></i></div><div class="check-label">Excerpt written</div></div>
+                    <div class="check-item required" id="chk-image"><div class="checkbox"><i class="ti ti-check"></i></div><div class="check-label">Featured image uploaded</div></div>
+                    <div class="check-item" id="chk-category"><div class="checkbox"><i class="ti ti-check"></i></div><div class="check-label">Category selected</div></div>
+                    <div class="check-item" id="chk-seo"><div class="checkbox"><i class="ti ti-check"></i></div><div class="check-label">SEO title & meta description</div></div>
+                    <div class="check-item" id="chk-words"><div class="checkbox"><i class="ti ti-check"></i></div><div class="check-label">Article over 300 words</div></div>
+                </div>
+                <div class="preview-actions">
+                    <button class="btn btn-primary" id="btn-publish-now">Publish now</button>
+                    <button class="btn btn-outline" id="btn-save-draft">Save as draft</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasts -->
+    <div id="toast-container"></div>
+
+    <script>
+        // --- State ---
+        let currentRole = 'super';
+        let currentUser = { name: 'John Doe', initials: 'JD' };
+        
+        // --- DOM Elements ---
+        const navItems = document.querySelectorAll('.nav-item');
+        const panels = document.querySelectorAll('.panel');
+        const roleSelect = document.getElementById('role-select');
+        const roleBadge = document.getElementById('user-role-badge');
+        
+        // Write Page Elements
+        const titleEl = document.getElementById('write-title');
+        const excerptEl = document.getElementById('write-excerpt');
+        const bodyEl = document.getElementById('write-body');
+        const wordCountEl = document.getElementById('word-count');
+        const readTimeEl = document.getElementById('read-time');
+        const saveIndicator = document.getElementById('save-indicator');
+        const slashMenu = document.getElementById('slash-menu');
+        const floatingToolbar = document.getElementById('floating-toolbar');
+        
+        // Modal Elements
+        const modal = document.getElementById('preview-gate');
+        const btnPublishGate = document.getElementById('btn-publish-gate');
+        const btnCloseGate = document.getElementById('btn-close-gate');
+        const btnPublishNow = document.getElementById('btn-publish-now');
+        const btnSaveDraft = document.getElementById('btn-save-draft');
+
+        // --- Role Management ---
+        const roleConfigs = {
+            super: { label: 'Super Admin', class: 'role-super' },
+            editor: { label: 'Editor', class: 'role-editor' },
+            author: { label: 'Author', class: 'role-author' }
+        };
+
+        function setRole(role) {
+            currentRole = role;
+            roleBadge.textContent = roleConfigs[role].label;
+            roleBadge.className = 'user-role-badge ' + roleConfigs[role].class;
+            
+            navItems.forEach(item => {
+                const requiredRole = item.getAttribute('data-role');
+                if (!requiredRole || requiredRole.includes(role)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                    if(item.classList.contains('active')) {
+                        switchPanel('write');
+                    }
+                }
+            });
+        }
+
+        roleSelect.addEventListener('change', (e) => setRole(e.target.value));
+
+        // --- Navigation ---
+        function switchPanel(panelId) {
+            navItems.forEach(item => {
+                if (item.getAttribute('data-panel') === panelId) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            panels.forEach(panel => {
+                panel.classList.remove('active');
+                if (panel.id === 'panel-' + panelId) panel.classList.add('active');
+            });
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => switchPanel(item.getAttribute('data-panel')));
+        });
+
+        // --- Editor Logic ---
+        let contentChanged = false;
+        function markUnsaved() {
+            if(!contentChanged) {
+                contentChanged = true;
+                saveIndicator.innerHTML = '<i class="ti ti-alert-circle"></i> Unsaved changes';
+                saveIndicator.classList.add('unsaved');
+            }
+        }
+        
+        function autoSave() {
+            if(contentChanged) {
+                contentChanged = false;
+                saveIndicator.innerHTML = '<i class="ti ti-check"></i> Saved just now';
+                saveIndicator.classList.remove('unsaved');
+            }
+        }
+        setInterval(autoSave, 30000);
+
+        function updateMetrics() {
+            const text = bodyEl.innerText.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            wordCountEl.textContent = words + ' words';
+            const readMins = Math.max(1, Math.ceil(words / 200));
+            readTimeEl.textContent = readMins + ' min read';
+            markUnsaved();
+        }
+
+        [titleEl, excerptEl, bodyEl].forEach(el => {
+            el.addEventListener('input', updateMetrics);
+        });
+
+        // Slash Commands
+        bodyEl.addEventListener('keyup', (e) => {
+            const selection = window.getSelection();
+            if(!selection.rangeCount) return;
+            const node = selection.focusNode;
+            if(node && node.textContent === '/') {
+                const rect = selection.getRangeAt(0).getBoundingClientRect();
+                slashMenu.style.left = rect.left + 'px';
+                slashMenu.style.top = (rect.bottom + 5) + 'px';
+                slashMenu.classList.add('active');
+            } else {
+                slashMenu.classList.remove('active');
+            }
+        });
+
+        document.querySelectorAll('.slash-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const cmd = item.getAttribute('data-cmd');
+                // Basic implementation of removing slash and applying block format
+                document.execCommand('delete', false, null); // remove slash
+                if(['h2', 'h3', 'p'].includes(cmd)) {
+                    document.execCommand('formatBlock', false, cmd);
+                } else if(cmd === 'quote') {
+                    document.execCommand('formatBlock', false, 'blockquote');
+                } else if(cmd === 'divider') {
+                    document.execCommand('insertHorizontalRule', false, null);
+                } else if(cmd === 'code') {
+                    document.execCommand('formatBlock', false, 'pre');
+                }
+                slashMenu.classList.remove('active');
+                bodyEl.focus();
+            });
+        });
+
+        // Floating Toolbar
+        document.addEventListener('selectionchange', () => {
+            if(document.activeElement !== bodyEl) {
+                floatingToolbar.classList.remove('active');
+                return;
+            }
+            const selection = window.getSelection();
+            if(selection.isCollapsed || selection.toString().trim() === '') {
+                floatingToolbar.classList.remove('active');
+                return;
+            }
+            const rect = selection.getRangeAt(0).getBoundingClientRect();
+            floatingToolbar.style.left = (rect.left + rect.width / 2) + 'px';
+            floatingToolbar.style.top = (rect.top - 5) + 'px';
+            floatingToolbar.classList.add('active');
+        });
+
+        document.querySelectorAll('.toolbar-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const fmt = btn.getAttribute('data-fmt');
+                const val = btn.getAttribute('data-val') || null;
+                if(fmt === 'createLink') {
+                    const url = prompt('Enter link URL:');
+                    if(url) document.execCommand(fmt, false, url);
+                } else {
+                    document.execCommand(fmt, false, val);
+                }
+            });
+        });
+
+        // --- Preview Gate Modal ---
+        function updateChecklist() {
+            const title = titleEl.textContent.trim();
+            const excerpt = excerptEl.textContent.trim();
+            const words = parseInt(wordCountEl.textContent);
+            
+            document.getElementById('chk-title').classList.toggle('checked', title.length > 0);
+            document.getElementById('chk-excerpt').classList.toggle('checked', excerpt.length > 0);
+            document.getElementById('chk-words').classList.toggle('checked', words > 300);
+            
+            // For prototype, assume image and SEO are unchecked initially.
+            const checkedBoxes = document.querySelectorAll('.check-item.checked').length;
+            const total = document.querySelectorAll('.check-item').length;
+            document.getElementById('checklist-progress').style.width = (checkedBoxes / total * 100) + '%';
+            
+            // Update preview card
+            document.getElementById('prev-title').textContent = title || 'Article Title...';
+            document.getElementById('prev-excerpt').textContent = excerpt || 'Excerpt...';
+            document.getElementById('prev-read').textContent = readTimeEl.textContent;
+            
+            // Update publish button state
+            const reqBoxes = document.querySelectorAll('.check-item.required');
+            let allReqPassed = true;
+            reqBoxes.forEach(b => { if(!b.classList.contains('checked')) allReqPassed = false; });
+            btnPublishNow.style.opacity = allReqPassed ? '1' : '0.5';
+        }
+
+        btnPublishGate.addEventListener('click', () => {
+            updateChecklist();
+            modal.classList.add('active');
+        });
+        
+        btnCloseGate.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        btnPublishNow.addEventListener('click', () => {
+            const requiredItems = [document.getElementById('chk-title'), document.getElementById('chk-excerpt'), document.getElementById('chk-image')];
+            let allPassed = true;
+            requiredItems.forEach(item => {
+                if(!item.classList.contains('checked')) {
+                    allPassed = false;
+                    item.classList.remove('shake');
+                    void item.offsetWidth; // trigger reflow
+                    item.classList.add('shake');
+                }
+            });
+            
+            if(allPassed) {
+                showToast('Published! Your article is now live.', 'success');
+                modal.classList.remove('active');
+                autoSave();
+            } else {
+                showToast('Complete all required fields before publishing.', 'error');
+            }
+        });
+
+        btnSaveDraft.addEventListener('click', () => {
+            showToast('Saved to drafts.', 'success');
+            modal.classList.remove('active');
+            autoSave();
+        });
+
+        // --- Toasts ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icon = type === 'success' ? 'ti-check' : type === 'error' ? 'ti-alert-circle' : 'ti-info-circle';
+            toast.innerHTML = `<i class="ti ${icon}" style="font-size: 20px;"></i> ${message}`;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- Staff Add Toggle ---
+        document.getElementById('btn-add-staff').addEventListener('click', () => {
+            document.getElementById('staff-form').classList.toggle('active');
+        });
+        document.getElementById('btn-save-staff').addEventListener('click', () => {
+            const email = document.getElementById('staff-email').value;
+            if(!email.endsWith('@themixhq.com')) {
+                showToast('Email must end in @themixhq.com', 'error');
+                return;
+            }
+            showToast('Invite sent to ' + email, 'success');
+            document.getElementById('staff-form').classList.remove('active');
+        });
+
+        // Init
+        setRole('super');
+
+    </script>
+</body>
+</html>
