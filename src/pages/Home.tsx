@@ -73,8 +73,8 @@ export default function Home() {
   const latestNews = articles.slice(0, 5);
   const heroArticle = articles[5] || articles[0];
   const mustReads = articles.slice(6, 11);
-  const tvNews = articles.slice(2, 6);
-  const movieNews = articles.slice(7, 10);
+  const tvNews = articles.slice(2, 6).length > 0 ? articles.slice(2, 6) : [articles[0]];
+  const movieNews = articles.slice(7, 10).length > 0 ? articles.slice(7, 10) : [articles[0]];
   const musicNews = articles.slice(1, 5);
 
   return (
