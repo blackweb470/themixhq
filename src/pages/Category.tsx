@@ -7,6 +7,10 @@ import { usePublishedArticlesInfinite } from '@/hooks/useData';
 import { ArticleCardSkeleton } from '@/components/Skeleton';
 import { SEO } from '@/components/SEO';
 
+import NotFound from './NotFound';
+
+const VALID_CATEGORIES = ['afrobeats', 'nollywood', 'music', 'lifestyle', 'culture', 'gossip'];
+
 export default function Category() {
   const { slug } = useParams();
   const { articles, isLoading, size, setSize, isReachingEnd } = usePublishedArticlesInfinite(slug);
@@ -14,6 +18,10 @@ export default function Category() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [slug]);
+
+  if (slug && !VALID_CATEGORIES.includes(slug.toLowerCase())) {
+    return <NotFound />;
+  }
 
   // Slug comes from the Navbar links e.g. /category/music
   const categoryTitle = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Category';

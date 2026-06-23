@@ -3,7 +3,7 @@ import {
   Edit, FileText, Files, Users, Megaphone, BarChart, Settings, UserCircle, 
   Check, AlertCircle, X, Image as ImageIcon,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Link as LinkIcon, PanelRight, ImagePlus, Trash2,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo, Redo, LayoutTemplate, Palette, Highlighter, Video as VideoIcon, Globe, Mail
+  AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo, Redo, LayoutTemplate, Palette, Highlighter, Video as VideoIcon, Globe, Mail, Menu
 } from 'lucide-react';
 
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -35,13 +35,13 @@ export default function Admin() {
 
   const checkRole = async (email: string) => {
     try {
-      const { data } = await supabase.from('staff').select('role').eq('email', email).limit(1);
-      if (data && data.length > 0 && data[0].role) {
-        const rawRole = data[0].role.toLowerCase();
-        if (rawRole.includes('super')) {
+      const { data } = await supabase.from('staff').select('role').eq('email', email);
+      if (data && data.length > 0) {
+        const hasSuper = data.some(d => d.role?.toLowerCase().includes('super'));
+        if (hasSuper) {
           setRole('super');
         } else {
-          setRole(rawRole);
+          setRole(data[0].role?.toLowerCase() || 'none');
         }
       } else {
         setRole('none');
@@ -74,6 +74,7 @@ export default function Admin() {
     return () => subscription.unsubscribe();
   }, []);
   const [activePanel, setActivePanel] = useState('write');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Editor State
   const [title, setTitle] = useState('');
@@ -395,13 +396,21 @@ export default function Admin() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100 text-black font-sans text-[14px]">
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-[240px] bg-white border-r border-gray-200 flex flex-col justify-between shrink-0 transition-all shadow-sm z-20">
+      <aside className={`fixed md:relative w-[240px] bg-white border-r border-gray-200 flex flex-col justify-between shrink-0 transition-transform shadow-sm z-50 h-full ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div>
-          <div className="p-6 border-b border-gray-100 flex justify-center">
+          <div className="p-6 border-b border-gray-100 flex justify-center relative">
             <div className="flex items-center justify-center w-36 h-12 relative">
               <img src="/logo.png" alt="THE MIX HQ" className="absolute scale-[2] object-contain pointer-events-none" />
             </div>
+            <button className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 p-2" onClick={() => setIsMobileMenuOpen(false)}>
+              <X size={20} className="text-gray-500" />
+            </button>
           </div>
           <ul className="py-4 overflow-y-auto">
             <NavItem icon={<Edit size={18}/>} label="Write new post" active={activePanel === 'write' && !editingArticleId} onClick={() => {
@@ -414,18 +423,23 @@ export default function Admin() {
               setSeoTitle('');
               setSeoDesc('');
               editor?.commands.setContent('');
+              setIsMobileMenuOpen(false);
             }} />
-            <NavItem icon={<FileText size={18}/>} label="Drafts" active={activePanel === 'drafts' || (activePanel === 'write' && editingArticleId)} onClick={() => setActivePanel('drafts')} />
-            <NavItem icon={<Files size={18}/>} label="Published Posts" active={activePanel === 'published'} onClick={() => setActivePanel('published')} />
-            {canSee(['super', 'editor']) && <NavItem icon={<Users size={18}/>} label="Staff directory" active={activePanel === 'staff'} onClick={() => setActivePanel('staff')} />}
-            {canSee(['super']) && <NavItem icon={<Megaphone size={18}/>} label="Promotional hub" active={activePanel === 'promo'} onClick={() => setActivePanel('promo')} />}
-            {canSee(['super']) && <NavItem icon={<Mail size={18}/>} label="Newsletter" active={activePanel === 'subscribers' || activePanel === 'draft-newsletter'} onClick={() => setActivePanel('subscribers')} />}
-            {canSee(['super']) && <NavItem icon={<BarChart size={18}/>} label="Analytics overview" active={activePanel === 'analytics'} onClick={() => setActivePanel('analytics')} />}
-            {canSee(['super']) && <NavItem icon={<Settings size={18}/>} label="Site settings" active={activePanel === 'settings'} onClick={() => setActivePanel('settings')} />}
+            <NavItem icon={<FileText size={18}/>} label="Drafts" active={activePanel === 'drafts' || (activePanel === 'write' && editingArticleId)} onClick={() => { setActivePanel('drafts'); setIsMobileMenuOpen(false); }} />
+            <NavItem icon={<Files size={18}/>} label="Published Posts" active={activePanel === 'published'} onClick={() => { setActivePanel('published'); setIsMobileMenuOpen(false); }} />
+            {canSee(['super', 'editor']) && <NavItem icon={<Users size={18}/>} label="Staff directory" active={activePanel === 'staff'} onClick={() => { setActivePanel('staff'); setIsMobileMenuOpen(false); }} />}
+            {canSee(['super']) && <NavItem icon={<Megaphone size={18}/>} label="Promotional hub" active={activePanel === 'promo'} onClick={() => { setActivePanel('promo'); setIsMobileMenuOpen(false); }} />}
+            {canSee(['super']) && <NavItem icon={<Mail size={18}/>} label="Newsletter" active={activePanel === 'subscribers' || activePanel === 'draft-newsletter'} onClick={() => { setActivePanel('subscribers'); setIsMobileMenuOpen(false); }} />}
+            {canSee(['super']) && <NavItem icon={<BarChart size={18}/>} label="Analytics overview" active={activePanel === 'analytics'} onClick={() => { setActivePanel('analytics'); setIsMobileMenuOpen(false); }} />}
+            {canSee(['super']) && <NavItem icon={<Settings size={18}/>} label="Site settings" active={activePanel === 'settings'} onClick={() => { setActivePanel('settings'); setIsMobileMenuOpen(false); }} />}
           </ul>
           
           <div className="p-6 border-t border-gray-100 flex flex-col gap-2">
-            <button onClick={() => supabase.auth.signOut()} className="flex items-center gap-3 text-gray-500 hover:text-black font-bold text-[13px] uppercase tracking-wider px-2 py-2">
+            <button onClick={() => {
+              if (window.confirm('Are you sure you want to sign out?')) {
+                supabase.auth.signOut();
+              }
+            }} className="flex items-center gap-3 text-gray-500 hover:text-black font-bold text-[13px] uppercase tracking-wider px-2 py-2">
               <UserCircle size={18} />
               Sign Out
             </button>
@@ -434,11 +448,14 @@ export default function Admin() {
       </aside>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col relative overflow-hidden bg-gray-50">
+      <div className="flex-1 flex flex-col relative overflow-hidden bg-gray-50 w-full">
         {/* Topbar */}
-        <header className="h-[60px] border-b border-gray-200 px-6 flex items-center justify-between bg-white z-20 shrink-0 shadow-sm relative">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSeoDrawerOpen(!seoDrawerOpen)} className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${seoDrawerOpen ? 'bg-red-50 text-red-700' : 'hover:bg-gray-100 text-gray-600'}`}>
+        <header className="h-[60px] border-b border-gray-200 px-4 md:px-6 flex items-center justify-between bg-white z-20 shrink-0 shadow-sm relative">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 hover:bg-gray-100 rounded-md text-gray-700">
+              <Menu size={20} />
+            </button>
+            <button onClick={() => setSeoDrawerOpen(!seoDrawerOpen)} className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${seoDrawerOpen ? 'bg-red-50 text-red-700' : 'hover:bg-gray-100 text-gray-600'}`}>
               <PanelRight size={18} />
               <span className="font-bold text-[13px] uppercase tracking-wider">SEO Tools</span>
             </button>

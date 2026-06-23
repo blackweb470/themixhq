@@ -5,6 +5,7 @@ import Category from './pages/Category';
 import Admin from './pages/Admin';
 import About from './pages/About';
 import Login from './pages/Login';
+import NotFound from './pages/NotFound';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Route path="/about" element={<About />} />
       <Route path="/hq-login" element={<Login />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
