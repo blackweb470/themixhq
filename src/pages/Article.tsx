@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router';
-import { Facebook, Twitter, Link as LinkIcon, ThumbsUp, ThumbsDown, PlayCircle } from 'lucide-react';
+import { Twitter, Link as LinkIcon, ThumbsUp, ThumbsDown, PlayCircle } from 'lucide-react';
 
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -24,31 +24,31 @@ export default function Article() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const [localLikes, setLocalLikes] = React.useState(0);
-  const [localDislikes, setLocalDislikes] = React.useState(0);
   const [hasVoted, setHasVoted] = React.useState<string | null>(null);
 
   useEffect(() => {
     if (article) {
-      setLocalLikes(article.likes || 0);
-      setLocalDislikes(article.dislikes || 0);
+      setLocalLikes(Number(article.likes) || 0);
       
       const votedState = localStorage.getItem(`voted_${article.id}`);
       setHasVoted(votedState);
     }
-  }, [article?.id]);
+  }, [article?.id, article?.likes]);
 
-  const handleVote = async (type: 'up' | 'down') => {
+  const handleVote = async (type: 'up') => {
     if (hasVoted || !article) return;
     
     setHasVoted(type);
     localStorage.setItem(`voted_${article.id}`, type);
 
     if (type === 'up') {
-      setLocalLikes(prev => prev + 1);
-      await supabase.from('articles').update({ likes: (article.likes || 0) + 1 }).eq('id', article.id);
-    } else {
-      setLocalDislikes(prev => prev + 1);
-      await supabase.from('articles').update({ dislikes: (article.dislikes || 0) + 1 }).eq('id', article.id);
+      setLocalLikes(prev => (Number(prev) || 0) + 1);
+      
+      // Attempt to update via RPC first, fallback to standard update
+      const { error } = await supabase.rpc('increment_likes', { row_id: article.id });
+      if (error) {
+        await supabase.from('articles').update({ likes: (Number(article.likes) || 0) + 1 }).eq('id', article.id);
+      }
     }
   };
 
@@ -171,9 +171,9 @@ export default function Article() {
             
             {/* Byline */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-b border-gray-200 py-4 mb-8 space-y-4 sm:space-y-0">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 flex items-center justify-center">
-                  <img src="/logo.png" alt="theMixhq" className="w-full h-full object-contain" />
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center justify-center">
+                  <img src="/logo.png" alt="theMixhq" className="h-8 md:h-10 w-auto object-contain" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900 uppercase tracking-wide">By <span className="text-red-600">{article.author}</span></p>
@@ -181,9 +181,25 @@ export default function Article() {
                 </div>
               </div>
               <div className="flex space-x-2">
-                <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-red-600 hover:border-red-600 transition-colors"><Facebook className="w-4 h-4" /></button>
-                <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-red-600 hover:border-red-600 transition-colors"><Twitter className="w-4 h-4" /></button>
-                <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-red-600 hover:border-red-600 transition-colors"><LinkIcon className="w-4 h-4" /></button>
+                <a 
+                  href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://themixhq.com/article/${article.id}`)}&text=${encodeURIComponent(article.title)}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-red-600 hover:border-red-600 transition-colors"
+                  title="Share on X (Twitter)"
+                >
+                  <Twitter className="w-4 h-4" />
+                </a>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://themixhq.com/article/${article.id}`);
+                    alert('Article link copied to clipboard!');
+                  }}
+                  className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-red-600 hover:border-red-600 transition-colors"
+                  title="Copy Link"
+                >
+                  <LinkIcon className="w-4 h-4" />
+                </button>
               </div>
             </div>
 
@@ -214,16 +230,9 @@ export default function Article() {
               <button 
                 onClick={() => handleVote('up')}
                 disabled={!!hasVoted}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold text-[13px] uppercase tracking-wider transition-colors border ${hasVoted === 'up' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300 hover:border-green-600 hover:text-green-600'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold text-[13px] uppercase tracking-wider transition-colors border ${hasVoted === 'up' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300 hover:border-red-600 hover:text-red-600'} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                <ThumbsUp size={16} /> {localLikes}
-              </button>
-              <button 
-                onClick={() => handleVote('down')}
-                disabled={!!hasVoted}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold text-[13px] uppercase tracking-wider transition-colors border ${hasVoted === 'down' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300 hover:border-red-600 hover:text-red-600'} disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                <ThumbsDown size={16} /> {localDislikes}
+                <ThumbsUp size={16} /> {localLikes} {localLikes === 1 ? 'Like' : 'Likes'}
               </button>
             </div>
 
