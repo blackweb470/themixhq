@@ -916,6 +916,25 @@ export default function Admin() {
                        <h4 className="font-bold text-[15px]">{member.name}</h4>
                        <p className="text-[13px] text-gray-500">{member.role} • {member.email}</p>
                      </div>
+                     {canSee(['super']) && (
+                       <button
+                         onClick={async () => {
+                           if (window.confirm(`Are you sure you want to remove ${member.name}?`)) {
+                             const { error } = await supabase.from('staff').delete().eq('id', member.id);
+                             if (error) {
+                               showToast('Failed to remove staff: ' + error.message, 'error');
+                             } else {
+                               showToast(`${member.name} removed successfully.`, 'success');
+                               mutateStaff();
+                             }
+                           }
+                         }}
+                         className="text-gray-400 hover:text-red-600 transition-colors p-2"
+                         title="Remove Staff"
+                       >
+                         <Trash2 size={18} />
+                       </button>
+                     )}
                    </div>
                  ))}
               </div>
