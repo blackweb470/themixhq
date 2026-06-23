@@ -1,13 +1,50 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
-import { Music, Zap, Globe, Sparkles, TrendingUp, Users } from 'lucide-react';
 
 export default function About() {
+  const [activeSection, setActiveSection] = useState('about');
+
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    const handleScroll = () => {
+      const sections = ['about', 'our-vibe', 'what-we-post', 'audience', 'editorial', 'contact'];
+      let currentSection = sections[0];
+      
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 150) {
+            currentSection = section;
+          }
+        }
+      }
+      setActiveSection(currentSection);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const sections = [
+    { id: 'about', label: 'About The Mix HQ' },
+    { id: 'our-vibe', label: 'Our Vibe' },
+    { id: 'what-we-post', label: 'What We Post' },
+    { id: 'audience', label: 'Our Audience' },
+    { id: 'editorial', label: 'Editorial Guidelines' },
+    { id: 'contact', label: 'Contact Us' }
+  ];
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const y = element.getBoundingClientRect().top + window.pageYOffset - 100;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white text-black font-sans selection:bg-red-600 selection:text-white">
@@ -15,104 +52,110 @@ export default function About() {
         title="About theMixhq | Nigerian Entertainment & Pop Culture"
         description="theMixhq is a fast-paced, meme-heavy Nigerian entertainment and pop culture Instagram blog covering viral videos, trending Naija gist, and Afrobeats news."
       />
-      <Navbar />
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <Navbar />
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-16 lg:py-24">
-        {/* Hero Section */}
-        <section className="text-center max-w-4xl mx-auto mb-20 animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-full font-bold text-sm uppercase tracking-wider mb-6">
-            <Sparkles size={16} /> THEMIXHQ BLOG
+      <main className="max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row gap-12 lg:gap-24 relative">
+        
+        {/* Left Sidebar - Table of Contents */}
+        <aside className="w-full md:w-64 lg:w-72 flex-shrink-0">
+          <div className="sticky top-32 bg-gray-50/80 p-6 lg:p-8 rounded-lg border border-gray-100">
+            <h3 className="font-bold text-[17px] mb-5 text-black">In This Article</h3>
+            <ul className="space-y-4 border-l-2 border-gray-200">
+              {sections.map((section) => (
+                <li key={section.id} className="relative">
+                  <button 
+                    onClick={() => scrollToSection(section.id)}
+                    className={`block w-full text-left pl-4 text-[15px] transition-colors ${
+                      activeSection === section.id 
+                        ? 'text-red-600 font-bold before:absolute before:left-[-2px] before:top-0 before:bottom-0 before:w-[2px] before:bg-red-600' 
+                        : 'text-gray-600 hover:text-black font-medium'
+                    }`}
+                  >
+                    {section.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] mb-8">
-            The Heartbeat of <span className="text-red-600">Naija Pop Culture</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 font-serif leading-relaxed">
-            @themixhq is a premier Nigerian entertainment and pop culture Instagram blog. 
-            We deliver the fastest, most relatable lifestyle content and Afrobeats news to millions of fans globally.
-          </p>
-        </section>
+        </aside>
 
-        {/* Vibe Section */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24 bg-gray-50 rounded-3xl p-8 lg:p-16 border border-gray-100">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-black mb-6 flex items-center gap-3">
-              <Zap className="text-red-600" size={32} /> Our Vibe
-            </h2>
-            <p className="text-lg text-gray-700 leading-relaxed font-serif mb-6">
-              Think fast-paced, meme-heavy, street-to-celebrity coverage. We break relatable lifestyle content + Afrobeats news, and our exclusive posts regularly get picked up by major Nigerian media sites like Legit.ng.
-            </p>
-            <p className="text-lg text-gray-700 leading-relaxed font-serif">
-              Whether it's the latest Davido moments, Wizkid throwback stories, or concert reactions, our active community keeps the conversation going. We are proudly active in the Davido fanbase too!
-            </p>
-          </div>
-          <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-2xl">
-            <img src="/images/music-culture.jpg" alt="theMixhq Vibe" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
-              <p className="text-white font-black text-2xl">Fast-paced. Meme-heavy. Relatable.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* What We Post */}
-        <section className="mb-24">
-          <h2 className="text-3xl md:text-5xl font-black text-center mb-16">What We Post</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-red-600 transition-colors group">
-              <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <TrendingUp size={28} />
-              </div>
-              <h3 className="text-xl font-black mb-4">Viral Videos & Naija Gist</h3>
-              <p className="text-gray-600 font-serif leading-relaxed">
-                From rent wahala in Asaba to concert reactions, we bring you the most talked-about trending stories and Davido moments as they happen.
-              </p>
-            </div>
-            
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-red-600 transition-colors group">
-              <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Music size={28} />
-              </div>
-              <h3 className="text-xl font-black mb-4">Music Drops & Reactions</h3>
-              <p className="text-gray-600 font-serif leading-relaxed">
-                We are the frontline for Afrobeats. Covering massive music drops and fan reactions, like Kizz Daniel's hit 'Twe Twe' release.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:border-red-600 transition-colors group">
-              <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <Globe size={28} />
-              </div>
-              <h3 className="text-xl font-black mb-4">Pop Culture Commentary</h3>
-              <p className="text-gray-600 font-serif leading-relaxed">
-                Our sharp commentary and takes are heavily referenced and often reposted by leading news outlets with credit to @themixhq.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Followed By Section */}
-        <section className="bg-black text-white rounded-3xl p-8 lg:p-16 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 via-yellow-500 to-red-600"></div>
-          <Users size={48} className="mx-auto mb-8 text-red-600" />
-          <h2 className="text-3xl md:text-5xl font-black mb-6">Followed by the Biggest Names</h2>
-          <p className="text-lg md:text-xl text-gray-300 font-serif max-w-3xl mx-auto mb-12">
-            theMixhq is heavily recognized and followed by top industry heavyweights globally. Our audience includes:
-          </p>
+        {/* Right Content - Main Articles */}
+        <article className="flex-1 max-w-3xl prose prose-lg prose-red">
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left max-w-5xl mx-auto">
-            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
-              <h3 className="text-xl font-bold mb-3 text-red-500">Top Nigerian Celebrities</h3>
-              <p className="text-gray-400 font-serif">The biggest Afrobeats superstars, Nollywood actors, and influencers who shape the Naija culture daily.</p>
+          <section id="about" className="mb-16 pt-4 scroll-mt-32">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] mb-6">About The Mix HQ</h1>
+            <p className="text-xl text-gray-700 leading-relaxed mb-6 font-serif">
+              As one of our readers once wrote: For years, <em>The Mix HQ</em> has run the pop culture alphabet from Afrobeats to Zendaya.
+            </p>
+            <p className="text-xl text-gray-700 leading-relaxed font-serif">
+              Heck, in the summer of 2023, the streets even called us the "pop-culture bible" — a validation of our commitment to being smart, funny, and first to bring you the latest Nigerian entertainment news.
+            </p>
+            <div className="mt-10 w-full h-[400px] bg-gray-100 rounded-xl overflow-hidden">
+              <img src="/images/music-culture.jpg" alt="The Mix HQ Culture" className="w-full h-full object-cover" />
             </div>
-            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
-              <h3 className="text-xl font-bold mb-3 text-red-500">American Rappers</h3>
-              <p className="text-gray-400 font-serif">Global hip-hop icons and US industry executives keeping a close eye on the exploding Afrobeats movement.</p>
+          </section>
+
+          <section id="our-vibe" className="mb-16 scroll-mt-32">
+            <h2 className="text-3xl font-black mb-6">Our Vibe</h2>
+            <p className="text-lg text-gray-700 leading-relaxed mb-4">
+              Think fast-paced, meme-heavy, street-to-celebrity coverage. We break relatable lifestyle content and Afrobeats news, and our exclusive posts regularly get picked up by major Nigerian media sites like Legit.ng.
+            </p>
+            <p className="text-lg text-gray-700 leading-relaxed">
+              Whether it's the latest Davido moments, Wizkid throwback stories, or concert reactions, our active community keeps the conversation going. We set the timeline on fire.
+            </p>
+          </section>
+
+          <section id="what-we-post" className="mb-16 scroll-mt-32">
+            <h2 className="text-3xl font-black mb-8">What We Post</h2>
+            <div className="space-y-8">
+              <div className="border-l-4 border-red-600 pl-4">
+                <h3 className="text-xl font-bold mb-2">Viral Videos & Gist</h3>
+                <p className="text-gray-700">From rent wahala in Asaba to concert reactions, we bring you the most talked-about trending stories and celebrity moments as they happen.</p>
+              </div>
+              <div className="border-l-4 border-red-600 pl-4">
+                <h3 className="text-xl font-bold mb-2">Music Drops</h3>
+                <p className="text-gray-700">We are the frontline for Afrobeats. Covering massive music drops and fan reactions instantly.</p>
+              </div>
+              <div className="border-l-4 border-red-600 pl-4">
+                <h3 className="text-xl font-bold mb-2">Pop Culture Commentary</h3>
+                <p className="text-gray-700">Our sharp commentary and takes are heavily referenced and often reposted by leading news outlets globally.</p>
+              </div>
             </div>
-            <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm">
-              <h3 className="text-xl font-bold mb-3 text-red-500">UK Celebrities</h3>
-              <p className="text-gray-400 font-serif">Leading British musicians, Grime artists, and pop culture figures connected to the global African diaspora.</p>
+          </section>
+
+          <section id="audience" className="mb-16 scroll-mt-32">
+            <h2 className="text-3xl font-black mb-6">Our Audience</h2>
+            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+              The Mix HQ is heavily recognized and followed by top industry heavyweights globally. Our core audience includes:
+            </p>
+            <ul className="list-disc pl-6 space-y-4 text-gray-700 text-lg">
+              <li><strong>Top Nigerian Celebs:</strong> The biggest Afrobeats superstars, Nollywood actors, and influencers who shape the Naija culture daily.</li>
+              <li><strong>American Rappers:</strong> Global hip-hop icons and US industry executives keeping a close eye on the exploding Afrobeats movement.</li>
+              <li><strong>UK Celebrities:</strong> Leading British musicians, Grime artists, and pop culture figures connected to the global African diaspora.</li>
+            </ul>
+          </section>
+
+          <section id="editorial" className="mb-16 scroll-mt-32">
+            <h2 className="text-3xl font-black mb-6">Editorial Guidelines</h2>
+            <p className="text-lg text-gray-700 leading-relaxed">
+              Accuracy, fairness, and speed are at the core of what we do. We verify our sources before publishing exclusive gist. While we lean heavily into entertainment, memes, and humor, we maintain a strict policy against fake news and malicious defamation.
+            </p>
+          </section>
+
+          <section id="contact" className="mb-16 scroll-mt-32">
+            <h2 className="text-3xl font-black mb-6">Contact Us</h2>
+            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+              Want to partner with us, send a tip, or request a feature? We are always open to hearing from our community and brands.
+            </p>
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+              <p className="text-lg text-gray-900 font-bold mb-2">General Inquiries</p>
+              <a href="mailto:info@themixhq.com" className="text-red-600 hover:text-red-700 font-medium">info@themixhq.com</a>
             </div>
-          </div>
-        </section>
+          </section>
+
+        </article>
       </main>
 
       <Footer />

@@ -41,20 +41,20 @@ export const Newsletter = () => {
         Get the latest entertainment news and Afrobeats updates delivered straight to your inbox.
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col w-full max-w-lg items-center">
-        <div className="flex w-full">
+        <div className="flex flex-col sm:flex-row w-full gap-3 sm:gap-0">
           <input 
             type="email" 
             placeholder="Email Address" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 px-4 py-3 text-black font-sans font-semibold focus:outline-none" 
+            className="flex-1 w-full px-4 py-3 text-black font-sans font-semibold focus:outline-none" 
             required
             disabled={status === 'loading'}
           />
           <button 
             type="submit" 
             disabled={status === 'loading'}
-            className="bg-red-600 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-red-700 transition-colors disabled:opacity-50"
+            className="bg-red-600 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-red-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
           >
             {status === 'loading' ? 'Sending...' : 'Sign Up'}
           </button>
