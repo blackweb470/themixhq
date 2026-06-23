@@ -45,7 +45,7 @@ const ArticleListMini = ({ title, data }: { title: string, data: any[] }) => (
 export default function Home() {
   const { articles, isLoading } = usePublishedArticlesInfinite();
 
-  if (isLoading || !articles.length) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-white text-black font-sans">
         <SEO />
@@ -70,12 +70,30 @@ export default function Home() {
     );
   }
 
-  const latestNews = articles.slice(0, 5);
-  const heroArticle = articles[5] || articles[0];
-  const mustReads = articles.slice(6, 11);
-  const tvNews = articles.slice(2, 6).length > 0 ? articles.slice(2, 6) : [articles[0]];
-  const movieNews = articles.slice(7, 10).length > 0 ? articles.slice(7, 10) : [articles[0]];
-  const musicNews = articles.slice(1, 5);
+  if (!articles.length) {
+    return (
+      <div className="min-h-screen bg-white text-black font-sans">
+        <SEO />
+        <Navbar />
+        <main className="max-w-7xl mx-auto px-4 py-32 text-center">
+          <h2 className="text-3xl font-black text-gray-400 mb-4">No blog posts found</h2>
+          <p className="text-gray-500 font-semibold">Check back later for the latest news and updates from The Mix HQ.</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const heroArticle = articles.find(a => a.featured) || articles[0];
+  const latestNews = articles.filter(a => a.id !== heroArticle.id).slice(0, 5);
+  
+  const trendingArticles = articles.filter(a => a.trending);
+  const mustReads = trendingArticles.length > 0 ? trendingArticles.slice(0, 5) : articles.slice(0, 5);
+  
+  const afrobeatsNews = articles.filter(a => ['afrobeats', 'music'].includes(a.category.toLowerCase()));
+  const nollywoodNews = articles.filter(a => ['nollywood', 'tv', 'movies', 'cinema'].includes(a.category.toLowerCase()));
+  const gossipNews = articles.filter(a => ['gossip'].includes(a.category.toLowerCase()));
+  const cultureNews = articles.filter(a => ['culture', 'lifestyle'].includes(a.category.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-white text-black font-sans">
@@ -89,43 +107,49 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           
           {/* Latest News Left Column */}
-          <div className="lg:col-span-3">
-            <h2 className="text-2xl font-black mb-4 flex items-center">
-              <span className="w-3 h-3 rounded-full bg-red-600 mr-2"></span>
-              Latest News
-            </h2>
-            <div className="flex flex-col space-y-6 divide-y divide-gray-100">
-              {latestNews.map((article, idx) => (
-                <Link to={`/article/${article.id}`} key={idx} className={`flex space-x-3 group cursor-pointer ${idx !== 0 ? 'pt-6' : ''}`}>
-                  <img src={article.image} alt={article.title} className="w-24 h-24 object-cover bg-gray-200" />
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-red-600 tracking-wider mb-1">{article.categoryLabel}</p>
-                    <h3 className="text-[13px] font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h3>
-                  </div>
-                </Link>
-              ))}
+          {latestNews.length > 0 && (
+            <div className="lg:col-span-3">
+              <h2 className="text-2xl font-black mb-4 flex items-center">
+                <span className="w-3 h-3 rounded-full bg-red-600 mr-2"></span>
+                Latest News
+              </h2>
+              <div className="flex flex-col space-y-6 divide-y divide-gray-100">
+                {latestNews.map((article, idx) => (
+                  <Link to={`/article/${article.id}`} key={idx} className={`flex space-x-3 group cursor-pointer ${idx !== 0 ? 'pt-6' : ''}`}>
+                    <img src={article.image} alt={article.title} className="w-24 h-24 object-cover bg-gray-200" />
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-red-600 tracking-wider mb-1">{article.categoryLabel}</p>
+                      <h3 className="text-[13px] font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h3>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Hero Article Center Column */}
-          <Link to={`/article/${heroArticle.id}`} className="lg:col-span-6 group cursor-pointer block">
-            <div className="relative mb-4">
-              <img src={heroArticle.image} alt={heroArticle.title} className="w-full h-[400px] object-cover bg-gray-200" />
-            </div>
-            <p className="text-[12px] font-bold uppercase text-red-600 tracking-wider mb-2">{heroArticle.categoryLabel}</p>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-[1.1] mb-3 group-hover:text-gray-600 transition-colors">
-              {heroArticle.title}
-            </h1>
-            <p className="text-lg text-gray-700 mb-4 font-serif">
-              {heroArticle.excerpt}
-            </p>
-            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-              By {heroArticle.author}
-            </p>
-          </Link>
+          {heroArticle && (
+            <Link to={`/article/${heroArticle.id}`} className="lg:col-span-6 group cursor-pointer block">
+              <div className="relative mb-4">
+                <img src={heroArticle.image} alt={heroArticle.title} className="w-full h-[400px] object-cover bg-gray-200" />
+              </div>
+              <p className="text-[12px] font-bold uppercase text-red-600 tracking-wider mb-2">{heroArticle.categoryLabel}</p>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-[1.1] mb-3 group-hover:text-gray-600 transition-colors">
+                {heroArticle.title}
+              </h1>
+              <p className="text-lg text-gray-700 mb-4 font-serif">
+                {heroArticle.excerpt}
+              </p>
+              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                By {heroArticle.author}
+              </p>
+            </Link>
+          )}
 
           <div className="lg:col-span-3 space-y-8">
-            <ArticleListMini title="Trending Afrobeats" data={mustReads} />
+            {mustReads.length > 0 && (
+              <ArticleListMini title="Trending Must Reads" data={mustReads} />
+            )}
             <div className="sticky top-20 space-y-8">
               <AdSlot zone="Sidebar Widget" slotIndex={0} />
               <AdSlot zone="Sidebar Widget" slotIndex={1} />
@@ -133,86 +157,94 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Afrobeats & Celebs Section */}
-        <div className="mb-12">
-          <SectionHeader title="Afrobeats & Celebs" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Link to={`/article/${articles[0].id}`} className="group cursor-pointer block">
-              <img src={articles[0].image} className="w-full h-[300px] object-cover mb-4 bg-gray-200" />
-              <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Exclusive</p>
-              <h3 className="text-2xl font-bold leading-tight group-hover:text-gray-600 transition-colors">{articles[0].title}</h3>
-            </Link>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {musicNews.map((article, idx) => (
-                <Link to={`/article/${article.id}`} key={idx} className="group cursor-pointer flex flex-col">
-                  <img src={article.image} className="w-full h-[120px] object-cover mb-2 bg-gray-200" />
-                  <h4 className="text-sm font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h4>
-                </Link>
-              ))}
+        {/* Afrobeats & Music Section */}
+        {afrobeatsNews.length > 0 && (
+          <div className="mb-12">
+            <SectionHeader title="Afrobeats & Music" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Link to={`/article/${afrobeatsNews[0].id}`} className="group cursor-pointer block">
+                <img src={afrobeatsNews[0].image} className="w-full h-[300px] object-cover mb-4 bg-gray-200" />
+                <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Exclusive</p>
+                <h3 className="text-2xl font-bold leading-tight group-hover:text-gray-600 transition-colors">{afrobeatsNews[0].title}</h3>
+              </Link>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {afrobeatsNews.slice(1, 5).map((article, idx) => (
+                  <Link to={`/article/${article.id}`} key={idx} className="group cursor-pointer flex flex-col">
+                    <img src={article.image} className="w-full h-[120px] object-cover mb-2 bg-gray-200" />
+                    <h4 className="text-sm font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h4>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Nollywood & TV Section */}
-        <div className="mb-12">
-          <SectionHeader title="Nollywood & TV" icon={<PlayCircle className="w-6 h-6" />} />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Link to={`/article/${tvNews[0].id}`} className="lg:col-span-2 group cursor-pointer relative block">
-              <img src={tvNews[0].image} className="w-full h-[400px] object-cover bg-gray-200" />
-              <div className="mt-4">
-                 <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Recaps</p>
-                 <h3 className="text-3xl font-black leading-tight group-hover:text-gray-600 transition-colors">{tvNews[0].title}</h3>
+        {nollywoodNews.length > 0 && (
+          <div className="mb-12">
+            <SectionHeader title="Nollywood & Cinema" icon={<PlayCircle className="w-6 h-6" />} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Link to={`/article/${nollywoodNews[0].id}`} className="lg:col-span-2 group cursor-pointer relative block">
+                <img src={nollywoodNews[0].image} className="w-full h-[400px] object-cover bg-gray-200" />
+                <div className="mt-4">
+                   <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Recaps</p>
+                   <h3 className="text-3xl font-black leading-tight group-hover:text-gray-600 transition-colors">{nollywoodNews[0].title}</h3>
+                </div>
+              </Link>
+              <div className="flex flex-col space-y-6">
+                {nollywoodNews.slice(1, 4).map((article, idx) => (
+                  <Link to={`/article/${article.id}`} key={idx} className="group cursor-pointer block">
+                    <img src={article.image} className="w-full h-[180px] object-cover mb-2 bg-gray-200" />
+                    <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Nollywood Review</p>
+                    <h4 className="text-lg font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h4>
+                  </Link>
+                ))}
               </div>
-            </Link>
-            <div className="flex flex-col space-y-6">
-              {tvNews.slice(1).map((article, idx) => (
-                <Link to={`/article/${article.id}`} key={idx} className="group cursor-pointer block">
-                  <img src={article.image} className="w-full h-[180px] object-cover mb-2 bg-gray-200" />
-                  <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Nollywood Review</p>
-                  <h4 className="text-lg font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h4>
-                </Link>
-              ))}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* African Cinema Section */}
-        <div className="mb-12 border-t-4 border-black pt-8">
-          <SectionHeader title="African Cinema" />
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <Link to={`/article/${movieNews[0].id}`} className="lg:col-span-8 group cursor-pointer block">
-              <img src={movieNews[0].image} className="w-full h-[400px] object-cover mb-4 bg-gray-200" />
-              <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Box Office Africa</p>
-              <h3 className="text-4xl font-black leading-tight group-hover:text-gray-600 transition-colors mb-2">{movieNews[0].title}</h3>
-              <p className="text-gray-700">{movieNews[0].excerpt}</p>
-            </Link>
-            <div className="lg:col-span-4 flex flex-col space-y-6 divide-y divide-gray-200">
-              {movieNews.slice(1).map((article, idx) => (
-                <Link to={`/article/${article.id}`} key={idx} className={`group cursor-pointer flex space-x-4 ${idx !== 0 ? 'pt-6' : ''}`}>
-                  <img src={article.image} className="w-24 h-24 object-cover bg-gray-200" />
-                  <div>
-                    <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Cinema News</p>
-                    <h4 className="text-[15px] font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h4>
-                  </div>
-                </Link>
-              ))}
+        {/* Gossip & Exclusives Section */}
+        {gossipNews.length > 0 && (
+          <div className="mb-12 border-t-4 border-black pt-8">
+            <SectionHeader title="Gossip & Exclusives" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <Link to={`/article/${gossipNews[0].id}`} className="lg:col-span-8 group cursor-pointer block">
+                <img src={gossipNews[0].image} className="w-full h-[400px] object-cover mb-4 bg-gray-200" />
+                <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Hot Scoop</p>
+                <h3 className="text-4xl font-black leading-tight group-hover:text-gray-600 transition-colors mb-2">{gossipNews[0].title}</h3>
+                <p className="text-gray-700">{gossipNews[0].excerpt}</p>
+              </Link>
+              <div className="lg:col-span-4 flex flex-col space-y-6 divide-y divide-gray-200">
+                {gossipNews.slice(1, 4).map((article, idx) => (
+                  <Link to={`/article/${article.id}`} key={idx} className={`group cursor-pointer flex space-x-4 ${idx !== 0 ? 'pt-6' : ''}`}>
+                    <img src={article.image} className="w-24 h-24 object-cover bg-gray-200" />
+                    <div>
+                      <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Tea</p>
+                      <h4 className="text-[15px] font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h4>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Culture Spotlight / Multi-grid */}
-        <div className="mb-12">
-          <SectionHeader title="Culture Spotlight" />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {articles.slice(8, 11).map((article, idx) => (
-              <Link to={`/article/${article.id}`} key={idx} className="group cursor-pointer block">
-                <img src={article.image} className="w-full h-[350px] object-cover mb-4 bg-gray-200 grayscale contrast-125" />
-                <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Digital Cover</p>
-                <h4 className="text-xl font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h4>
-              </Link>
-            ))}
+        {cultureNews.length > 0 && (
+          <div className="mb-12">
+            <SectionHeader title="Culture Spotlight" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {cultureNews.slice(0, 3).map((article, idx) => (
+                <Link to={`/article/${article.id}`} key={idx} className="group cursor-pointer block">
+                  <img src={article.image} className="w-full h-[350px] object-cover mb-4 bg-gray-200 grayscale contrast-125 hover:grayscale-0 transition-all duration-300" />
+                  <p className="text-[11px] font-bold uppercase text-red-600 tracking-wider mb-1">Digital Cover</p>
+                  <h4 className="text-xl font-bold leading-tight group-hover:text-gray-600 transition-colors">{article.title}</h4>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
       </main>
 

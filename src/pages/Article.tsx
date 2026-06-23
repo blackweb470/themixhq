@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router';
-import { Twitter, Link as LinkIcon, ThumbsUp, ThumbsDown, PlayCircle } from 'lucide-react';
+import { Twitter, Link as LinkIcon, ThumbsUp, PlayCircle } from 'lucide-react';
 
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
