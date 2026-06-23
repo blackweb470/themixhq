@@ -151,7 +151,7 @@ export default function About() {
             </p>
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
               <p className="text-lg text-gray-900 font-bold mb-2">General Inquiries</p>
-              <a href="mailto:info@themixhq.com" className="text-red-600 hover:text-red-700 font-medium">info@themixhq.com</a>
+              <a href="mailto:Themixnaija@gmail.com" className="text-red-600 hover:text-red-700 font-medium">Themixnaija@gmail.com</a>
             </div>
           </section>
 
