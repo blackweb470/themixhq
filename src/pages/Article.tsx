@@ -173,7 +173,9 @@ export default function Article() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-b border-gray-200 py-4 mb-8 space-y-4 sm:space-y-0">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center justify-center">
-                  <img src="/logo.png" alt="theMixhq" className="h-8 md:h-10 w-auto object-contain" />
+                  <div className="flex items-center justify-center w-24 md:w-32 h-10 md:h-12 relative">
+                    <img src="/logo.png" alt="theMixhq" className="absolute scale-[2] object-contain pointer-events-none" />
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900 uppercase tracking-wide">By <span className="text-red-600">{article.author}</span></p>

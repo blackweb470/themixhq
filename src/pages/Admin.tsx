@@ -399,7 +399,9 @@ export default function Admin() {
       <aside className="w-[240px] bg-white border-r border-gray-200 flex flex-col justify-between shrink-0 transition-all shadow-sm z-20">
         <div>
           <div className="p-6 border-b border-gray-100 flex justify-center">
-            <img src="/logo.png" alt="THE MIX HQ" className="h-10 object-contain" />
+            <div className="flex items-center justify-center w-36 h-12 relative">
+              <img src="/logo.png" alt="THE MIX HQ" className="absolute scale-[2] object-contain pointer-events-none" />
+            </div>
           </div>
           <ul className="py-4 overflow-y-auto">
             <NavItem icon={<Edit size={18}/>} label="Write new post" active={activePanel === 'write' && !editingArticleId} onClick={() => {

@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { IconBrandInstagram, IconBrandX, IconBrandYoutube, IconBrandTiktok } from '@tabler/icons-react';
 
 export const Logo = () => (
-  <img src="/logo.png" alt="THE MIX HQ" className="h-14 md:h-16 object-contain" />
+  <div className="flex items-center justify-center w-40 md:w-60 lg:w-72 h-14 md:h-16 lg:h-20 relative">
+    <img src="/logo.png" alt="THE MIX HQ" className="absolute scale-[1.8] object-contain pointer-events-none" />
+  </div>
 );
 
 export const Navbar = () => {
